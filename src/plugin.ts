@@ -8,7 +8,8 @@ class User {
     constructor() {
         this.register.attributes = {
             name: 'bemily-user',
-            version: '0.1.0'
+            version: '0.1.0',
+            dependencies: 'bemily-database'
         };
     }
 
@@ -21,5 +22,11 @@ class User {
     private _register(server, options) {
         // Register
         return 'register';
+    }
+
+    errorInit(error) {
+        if(error) {
+            console.log('Error: init plugin failed:', error);
+        }
     }
 }
