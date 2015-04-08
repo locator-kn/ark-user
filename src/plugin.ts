@@ -21,6 +21,13 @@ class User {
 
     private _register(server, options) {
         // Register
+        server.route({
+            method: '*',
+            path: '/test',
+            handler: (request, reply) => {
+                reply(request.server.plugins['bemily-database'].getUser());
+            }
+        });
         return 'register';
     }
 
