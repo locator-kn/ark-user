@@ -3,6 +3,21 @@ export interface IRegister {
     attributes?: any;
 }
 
+/**
+ * structure of user in database
+ */
+export interface User {
+    _id: string;
+    name: string;
+    surname: string;
+    mail: string;
+    password: string;
+    username: string;
+    major: string;
+    semester: number;
+    subscribed_groups: string[];
+}
+
 export default
 class User {
     db: any;
@@ -32,6 +47,14 @@ class User {
             path: '/test',
             handler: (request, reply) => {
                 reply(this.db.getUser());
+            }
+        });
+
+        server.route({
+            method: 'GET',
+            path: '/me',
+            handler: (request, reply) => {
+
             }
         });
         return 'register';
