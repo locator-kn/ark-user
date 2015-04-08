@@ -43,14 +43,6 @@ class User {
     private _register(server, options) {
         // Register
         server.route({
-            method: '*',
-            path: '/test',
-            handler: (request, reply) => {
-                reply(this.db.getUser());
-            }
-        });
-
-        server.route({
             method: 'GET',
             path: '/me',
             handler: (request, reply) => {
