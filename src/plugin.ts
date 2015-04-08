@@ -5,16 +5,22 @@ export interface IRegister {
 
 export default
 class User {
+    db: any;
     constructor() {
         this.register.attributes = {
             name: 'bemily-user',
-            version: '0.1.0',
-            dependencies: 'bemily-database'
+            version: '0.1.0'
         };
     }
 
     register:IRegister = (server, options, next) => {
         server.bind(this);
+
+        server.dependency('bemily-database', (server, next) => {
+            this.db = server.plugins['bemily-database'];
+            next();
+        });
+
         this._register(server, options);
         next();
     };
@@ -25,7 +31,7 @@ class User {
             method: '*',
             path: '/test',
             handler: (request, reply) => {
-                reply(request.server.plugins['bemily-database'].getUser());
+                reply(this.db.getUser());
             }
         });
         return 'register';
