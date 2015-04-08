@@ -41,12 +41,18 @@ class User {
     };
 
     private _register(server, options) {
-        // Register
+        // get user information about logged in user
         server.route({
             method: 'GET',
             path: '/me',
             handler: (request, reply) => {
-
+                var userId = request.session.get('loggedInUser');
+                this.db.getUserById(userId, (err, data:User) => {
+                    if(err) {
+                        return reply(err).code(400);
+                    }
+                    reply(data);
+                })
             }
         });
         return 'register';
