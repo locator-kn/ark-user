@@ -76,9 +76,9 @@ class User {
         return 'register';
     }
 
-    errorInit(error) {
-        if (error) {
-            console.log('Error: init plugin failed:', error);
+    errorInit(err) {
+        if (err) {
+            console.log('Error: init plugin failed:', err);
         }
     }
 
