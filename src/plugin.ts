@@ -21,11 +21,20 @@ export interface User {
 export default
 class User {
     db: any;
+    joi:any
+
     constructor() {
         this.register.attributes = {
             name: 'bemily-user',
             version: '0.1.0'
         };
+        this.joi = require('joi');
+        this.initSchema();
+    }
+
+
+    private initSchema():void {
+
     }
 
     register:IRegister = (server, options, next) => {
@@ -63,4 +72,5 @@ class User {
             console.log('Error: init plugin failed:', error);
         }
     }
+
 }
