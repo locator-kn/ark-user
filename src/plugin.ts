@@ -20,8 +20,9 @@ export interface User {
 
 export default
 class User {
-    db: any;
-    joi:any
+    db:any;
+    joi:any;
+    userSchema:any;
 
     constructor() {
         this.register.attributes = {
@@ -32,9 +33,17 @@ class User {
         this.initSchema();
     }
 
-
     private initSchema():void {
-
+        this.userSchema = this.joi.object().keys({
+            _id: this.joi.string().required(),
+            name: this.joi.string(),
+            surname: this.joi.string(),
+            mail: this.joi.string(),
+            password: this.joi.string(),
+            username: this.joi.string(),
+            major: this.joi.string(),
+            semester: this.joi.number().integer()
+        });
     }
 
     register:IRegister = (server, options, next) => {
@@ -57,7 +66,7 @@ class User {
             handler: (request, reply) => {
                 var userId = request.session.get('loggedInUser');
                 this.db.getUserById(userId, (err, data:User) => {
-                    if(err) {
+                    if (err) {
                         return reply(err).code(400);
                     }
                     reply(data);
@@ -68,7 +77,7 @@ class User {
     }
 
     errorInit(error) {
-        if(error) {
+        if (error) {
             console.log('Error: init plugin failed:', error);
         }
     }
