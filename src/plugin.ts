@@ -91,7 +91,12 @@ class User {
             method: 'GET',
             path: '/getUser/{userid}',
             handler: (request, reply) => {
-
+                this.db.getUserById(request.params.userid, (err, data) => {
+                    if (err) {
+                        return reply(err).code(400);
+                    }
+                    reply(data);
+                })
             }
         });
         return 'register';
