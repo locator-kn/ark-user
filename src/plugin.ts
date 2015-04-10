@@ -65,12 +65,25 @@ class User {
             path: '/me',
             handler: (request, reply) => {
                 var userId = request.session.get('loggedInUser');
-                this.db.getUserById(userId, (err, data:User) => {
+                this.db.getUserById(userId, (err, data) => {
                     if (err) {
                         return reply(err).code(400);
                     }
                     reply(data);
                 })
+            }
+        });
+
+        server.route({
+            method: 'POST',
+            path: '/createUser',
+            handler: (request, reply) => {
+                this.db.createUser(request.payload, (err, data) => {
+                    if (err) {
+                        return reply(err).code(400);
+                    }
+                    reply(data);
+                });
             }
         });
         return 'register';
