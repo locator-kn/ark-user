@@ -86,6 +86,14 @@ class User {
                 });
             }
         });
+
+        server.route({
+            method: 'GET',
+            path: '/getUser/{userid}',
+            handler: (request, reply) => {
+
+            }
+        });
         return 'register';
     }
 
