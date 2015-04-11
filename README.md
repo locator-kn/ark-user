@@ -1,8 +1,24 @@
-# hapi-typescript-plugin
+# User-Plugin
 
-This is a very basic template to write [HapiJs-Plugins](http://hapijs.com/api#plugins) with TypeScript.
+## Routes
+####GET
 
-It has a gulptask included to compile the source to JavaScript. This task is also referenced in the package.json as postinstall script.
+|Ressource   | Description  |  on Success | on Failure |
+|---|---|---|---|
+|/users/:ID   | returns profile information for requested user ID  | json object | statusCode: 404 | 
+|/me           | returns profile of current user  | json object | statusCode: 404 |
+
+
+####POST
+|Ressource   | Description  |  on Success | on Failure |
+|---|---|---|---|
+|/users   | create new user | statusCode: 200 | statusCode: 404 |
+
+####PUT
+|Ressource   | Description  |  on Success | on Failure |
+|---|---|---|---|
+|/users   | update user informations  | statusCode: 200 | statusCode: 404 |
+
 
 ## Tests
 
