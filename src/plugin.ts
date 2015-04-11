@@ -94,6 +94,21 @@ class User {
             }
         });
 
+        // route to update user information
+        server.route({
+            method: 'PUT',
+            path: '/users',
+            handler: (request, reply) => {
+                var user = request.payload.user;
+                this.db.updateUser(user._id, user._rev, user, (err, data) => {
+                    if (err) {
+                        return reply(err).code(400);
+                    }
+                    reply(data);
+                });
+            }
+        });
+
         server.route({
             method: 'POST',
             path: '/createUser',
