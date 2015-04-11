@@ -109,9 +109,10 @@ class User {
             }
         });
 
+        // route to create new user
         server.route({
             method: 'POST',
-            path: '/createUser',
+            path: '/users',
             handler: (request, reply) => {
                 this.db.createUser(request.payload, (err, data) => {
                     if (err) {
@@ -122,18 +123,6 @@ class User {
             }
         });
 
-        server.route({
-            method: 'GET',
-            path: '/getUser/{userid}',
-            handler: (request, reply) => {
-                this.db.getUserById(request.params.userid, (err, data) => {
-                    if (err) {
-                        return reply(err).code(400);
-                    }
-                    reply(data);
-                })
-            }
-        });
         return 'register';
     }
 
