@@ -18,7 +18,7 @@
 |Ressource   | Description  |  on Success | on Failure |
 |---|---|---|---|
 |/users   | update user informations  | statusCode: 200 | statusCode: 404 |
-|/users/:GROUP_ID   | add groupt to user  | statusCode: 200 | statusCode: 404 |
+|/users/:GROUP_ID   | add group to user  | statusCode: 200 | statusCode: 404 |
 
 
 ## Tests
