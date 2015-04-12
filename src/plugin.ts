@@ -108,11 +108,11 @@ class User {
             handler: (request, reply) => {
                 this.joi.validate(request.payload, this.userSchema, (err, user:IUser)=> {
                     if (err) {
-                        return reply(err).code(400);
+                        return reply(this.boom.wrap(err, 400, err.details.message));
                     } else {
                         this.db.updateUser(user._id, user._rev, user, (err, data) => {
                             if (err) {
-                                return reply(err).code(400);
+                                return reply(this.boom.wrap(err, 400));
                             }
                             reply(data);
                         });
