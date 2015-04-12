@@ -16,6 +16,7 @@ export interface IUser {
     major: string;
     semester: number;
     subscribed_groups: string[];
+    type: string;
 }
 
 export default
