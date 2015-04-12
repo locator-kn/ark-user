@@ -61,12 +61,12 @@ class User {
         }
         this.db = options.databaseInstance;
 
-/*      // FIXME: check alternative import of db instance with server.dependency
-        server.dependency('bemily-database', (server, next) => {
-            this.db = server.plugins['bemily-database'];
-            next();
-        });
-*/
+        /*      // FIXME: check alternative import of db instance with server.dependency
+         server.dependency('bemily-database', (server, next) => {
+         this.db = server.plugins['bemily-database'];
+         next();
+         });
+         */
         this._register(server, options);
         next();
     };
@@ -127,12 +127,18 @@ class User {
             method: 'POST',
             path: '/users',
             handler: (request, reply) => {
-                var user:IUser = request.payload;
-                this.db.createUser(user, (err, data) => {
+                this.joi.validate(request.payload, this.userSchema, (err, user:IUser)=> {
                     if (err) {
-                        return reply(err).code(400);
+                        return reply(this.boom.wrap(err, 400, err.details.message));
+                    } else {
+                        this.db.createUser(user, (err, data) => {
+                            if (err) {
+                                return reply(this.boom.wrap(err, 400, err.details.message));
+                            }
+                            reply(data);
+                        });
+
                     }
-                    reply(data);
                 });
             }
         });
