@@ -6,7 +6,7 @@ export interface IRegister {
 /**
  * structure of user in database
  */
-export interface User {
+export interface IUser {
     _id: string;
     name: string;
     surname: string;
@@ -114,7 +114,8 @@ class User {
             method: 'POST',
             path: '/users',
             handler: (request, reply) => {
-                this.db.createUser(request.payload, (err, data) => {
+                var user:IUser = request.payload;
+                this.db.createUser(user, (err, data) => {
                     if (err) {
                         return reply(err).code(400);
                     }
