@@ -8,6 +8,7 @@ export interface IRegister {
  */
 export interface IUser {
     _id: string;
+    _rev?: string;
     name: string;
     surname: string;
     mail: string;
@@ -37,6 +38,7 @@ class User {
     private initSchema():void {
         this.userSchema = this.joi.object().keys({
             _id: this.joi.string().required(),
+            _rev: this.joi.string(),
             name: this.joi.string(),
             surname: this.joi.string(),
             mail: this.joi.string(),
@@ -100,12 +102,18 @@ class User {
             method: 'PUT',
             path: '/users',
             handler: (request, reply) => {
-                var user = request.payload.user;
-                this.db.updateUser(user._id, user._rev, user, (err, data) => {
+                this.joi.validate(request.payload, this.userSchema, (err, user:IUser)=> {
                     if (err) {
                         return reply(err).code(400);
+                    } else {
+                        this.db.updateUser(user._id, user._rev, (err, data) => {
+                            if (err) {
+                                return reply(err).code(400);
+                            }
+                            reply(data);
+                        });
+
                     }
-                    reply(data);
                 });
             }
         });
