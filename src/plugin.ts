@@ -25,6 +25,7 @@ class User {
     db:any;
     joi:any;
     userSchema:any;
+    boom:any;
 
     constructor() {
         this.register.attributes = {
@@ -32,6 +33,7 @@ class User {
             version: '0.1.0'
         };
         this.joi = require('joi');
+        this.boom = require('boom');
         this.initSchema();
     }
 
