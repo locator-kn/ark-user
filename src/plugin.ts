@@ -110,7 +110,7 @@ class User {
                     if (err) {
                         return reply(err).code(400);
                     } else {
-                        this.db.updateUser(user._id, user._rev, (err, data) => {
+                        this.db.updateUser(user._id, user._rev, user, (err, data) => {
                             if (err) {
                                 return reply(err).code(400);
                             }
