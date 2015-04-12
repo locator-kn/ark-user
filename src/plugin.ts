@@ -13,8 +13,8 @@ export interface IUser {
     surname: string;
     mail: string;
     password: string;
-    username: string;
     major: string;
+    picture: string;
     semester: number;
     subscribed_groups: string[];
     type: string;
@@ -41,11 +41,13 @@ class User {
             _rev: this.joi.string(),
             name: this.joi.string(),
             surname: this.joi.string(),
+            picture: this.joi.optional(),
             mail: this.joi.string(),
             password: this.joi.string(),
-            username: this.joi.string(),
             major: this.joi.string(),
-            semester: this.joi.number().integer()
+            subscribed_groups: this.joi.array(),
+            semester: this.joi.number().integer(),
+            type: this.joi.string().required()
         });
     }
 
