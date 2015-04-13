@@ -56,17 +56,16 @@ class User {
     register:IRegister = (server, options, next) => {
         server.bind(this);
 
-        if (!options.databaseInstance) {
-            throw new Error('options.databaseInstance needs to be defined');
-        }
-        this.db = options.databaseInstance;
+        //if (!options.databaseInstance) {
+        //    throw new Error('options.databaseInstance needs to be defined');
+        //}
+        //this.db = options.databaseInstance;
 
-        /*      // FIXME: check alternative import of db instance with server.dependency
+         // FIXME: check alternative import of db instance with server.dependency
          server.dependency('bemily-database', (server, next) => {
-         this.db = server.plugins['bemily-database'];
-         next();
+            this.db = server.plugins['bemily-database'];
+            next();
          });
-         */
         this._register(server, options);
         next();
     };
