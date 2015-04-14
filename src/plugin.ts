@@ -120,6 +120,25 @@ class User {
             }
         });
 
+        // route to get user
+        server.route({
+            method: 'GET',
+            path: '/users',
+            config: {
+                handler: (request, reply) => {
+                    this.db.getUsers((err, data) => {
+                        if (err) {
+                            return reply(this.boom.wrap(err, 400));
+                        }
+                        reply(data);
+                    });
+                },
+                description: 'Get all users',
+                tags: ['api', 'user']
+
+            }
+        });
+
         // route to update user information
         server.route({
                 method: 'PUT',
