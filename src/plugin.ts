@@ -116,24 +116,38 @@ class User {
 
         // route to update user information
         server.route({
-            method: 'PUT',
-            path: '/users',
-            handler: (request, reply) => {
-                this.joi.validate(request.payload, this.userSchema, (err, user:IUser)=> {
-                    if (err) {
-                        return reply(this.boom.wrap(err, 400, err.details.message));
-                    } else {
-                        this.db.updateUser(user._id, user._rev, user, (err, data) => {
+                method: 'PUT',
+                path: '/users',
+                config: {
+                    handler: (request, reply) => {
+                        this.joi.validate(request.payload, this.userSchema, (err, user:IUser)=> {
                             if (err) {
-                                return reply(this.boom.wrap(err, 400));
+                                return reply(this.boom.wrap(err, 400, err.details.message));
+                            } else {
+                                this.db.updateUser(user._id, user._rev, user, (err, data) => {
+                                    if (err) {
+                                        return reply(this.boom.wrap(err, 400));
+                                    }
+                                    reply(data);
+                                });
+
                             }
-                            reply(data);
                         });
+                    },
+                    description: 'Update user information',
+                    notes: 'It is important to add the "_rev" property!',
+                    tags: ['api', 'user'],
+                    validate: {
+                        params: {
+                            user: this.userSchema
+                                .required()
+                                .description('User JSON object WITH _rev')
+                        }
 
                     }
-                });
+                }
             }
-        });
+        );
 
         // route to create new user
         server.route({
