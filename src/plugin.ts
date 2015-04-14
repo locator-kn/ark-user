@@ -73,8 +73,10 @@ class User {
             path: '/me',
             config: {
                 handler: (request, reply) => {
-                    var userId = request.session.get('loggedInUser');
-                    this.db.getUserById(userId, (err, data) => {
+                    if(!request.auth || !request.auth.credentials) {
+                        return reply(this.boom.badRequest('this should never happen'));
+                    }
+                    this.db.getUserById(request.auth.credentials.id, (err, data) => {
                         if (err) {
                             return reply(err).code(400);
                         }
