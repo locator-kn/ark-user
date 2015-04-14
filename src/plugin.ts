@@ -153,22 +153,36 @@ class User {
         server.route({
             method: 'POST',
             path: '/users',
-            handler: (request, reply) => {
-                this.joi.validate(request.payload, this.userSchema, (err, user:IUser)=> {
-                    if (err) {
-                        return reply(this.boom.wrap(err, 400, err.details.message));
-                    } else {
-                        this.db.createUser(user, (err, data) => {
-                            if (err) {
-                                return reply(this.boom.wrap(err, 400, err.details.message));
-                            }
-                            reply(data);
-                        });
+            config: {
+                handler: (request, reply) => {
+                    this.joi.validate(request.payload, this.userSchema, (err, user:IUser)=> {
+                        if (err) {
+                            return reply(this.boom.wrap(err, 400, err.details.message));
+                        } else {
+                            this.db.createUser(user, (err, data) => {
+                                if (err) {
+                                    return reply(this.boom.wrap(err, 400, err.details.message));
+                                }
+                                reply(data);
+                            });
 
+                        }
+                    });
+                },
+                description: 'Create new user',
+                notes: 'Create with _id (from LDAP) and without _rev',
+                tags: ['api', 'user'],
+                validate: {
+                    params: {
+                        user: this.userSchema
+                            .required()
+                            .description('User JSON object')
                     }
-                });
-            }
-        });
+
+                }
+
+            }}
+        );
 
         return 'register';
     }
