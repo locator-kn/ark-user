@@ -24,7 +24,8 @@ export default
 class User {
     db:any;
     joi:any;
-    userSchema:any;
+    userSchemaPOST:any;
+    userSchemaPUT:any;
     boom:any;
 
     constructor() {
@@ -34,10 +35,10 @@ class User {
         };
         this.joi = require('joi');
         this.boom = require('boom');
-        this.initSchema();
+        this.initSchemas();
     }
 
-    private initSchema():void {
+    private initSchemas():void {
         var user = this.joi.object().keys({
             _id: this.joi.string().required(),
             name: this.joi.string().required(),
@@ -51,9 +52,10 @@ class User {
             type: this.joi.string().required().valid('user')
         });
 
-        var rev = this.joi.object().keys({_rev: this.joi.string()});
+        var rev = this.joi.object().keys({_rev: this.joi.string().required()});
 
-
+        this.userSchemaPOST = user;
+        this.userSchemaPUT = rev.concat(user);
 
     }
 
@@ -124,7 +126,7 @@ class User {
                 path: '/users',
                 config: {
                     handler: (request, reply) => {
-                        this.joi.validate(request.payload, this.userSchema, (err, user:IUser)=> {
+                        this.joi.validate(request.payload, this.userSchemaPUT, (err, user:IUser)=> {
                             if (err) {
                                 return reply(this.boom.wrap(err, 400, err.details.message));
                             } else {
@@ -143,7 +145,7 @@ class User {
                     tags: ['api', 'user'],
                     validate: {
                         params: {
-                            user: this.userSchema
+                            user: this.userSchemaPUT
                                 .required()
                                 .description('User JSON object WITH _rev')
                         }
