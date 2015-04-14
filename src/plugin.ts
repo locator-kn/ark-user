@@ -144,13 +144,11 @@ class User {
                     notes: 'It is important to add the "_rev" property!',
                     tags: ['api', 'user'],
                     validate: {
-                        params: {
-                            user: this.userSchemaPUT
-                                .required()
-                                .description('User JSON object WITH _rev')
-                        }
-
+                        payload: this.userSchemaPUT
+                            .required()
+                            .description('User JSON object WITH _rev')
                     }
+
                 }
             }
         );
@@ -179,12 +177,9 @@ class User {
                     notes: 'Create with _id (from LDAP) and without _rev',
                     tags: ['api', 'user'],
                     validate: {
-                        params: {
-                            user: this.userSchemaPOST
-                                .required()
-                                .description('User JSON object')
-                        }
-
+                        payload: this.userSchemaPOST
+                            .required()
+                            .description('User JSON object')
                     }
 
                 }
