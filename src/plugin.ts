@@ -38,19 +38,23 @@ class User {
     }
 
     private initSchema():void {
-        this.userSchema = this.joi.object().keys({
+        var user = this.joi.object().keys({
             _id: this.joi.string().required(),
-            _rev: this.joi.string(),
-            name: this.joi.string(),
-            surname: this.joi.string(),
+            name: this.joi.string().required(),
+            surname: this.joi.string().required(),
             picture: this.joi.optional(),
-            mail: this.joi.string(),
-            password: this.joi.string(),
+            mail: this.joi.string().email().required(),
+            password: this.joi.string().required(),
             major: this.joi.string(),
             subscribed_groups: this.joi.array(),
             semester: this.joi.number().integer(),
-            type: this.joi.string().required()
+            type: this.joi.string().required().valid('user')
         });
+
+        var rev = this.joi.object().keys({_rev: this.joi.string()});
+
+
+
     }
 
     register:IRegister = (server, options, next) => {
