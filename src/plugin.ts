@@ -81,7 +81,7 @@ class User {
                         reply(data);
                     })
                 },
-                description: 'Get all infromation about current user',
+                description: 'Get all information about current user',
                 notes: 'Identification about current logged in user is get from session parameter "loggedInUser"',
                 tags: ['api', 'user']
             }
@@ -91,13 +91,26 @@ class User {
         server.route({
             method: 'GET',
             path: '/users/{userid}',
-            handler: (request, reply) => {
-                this.db.getUserById(request.params.userid, (err, data) => {
-                    if (err) {
-                        return reply(err).code(400);
+            config: {
+                handler: (request, reply) => {
+                    this.db.getUserById(request.params.userid, (err, data) => {
+                        if (err) {
+                            return reply(this.boom.wrap(err, 400));
+                        }
+                        reply(data);
+                    });
+                },
+                description: 'Get particular user by user id',
+                notes: 'sample call: /users/tiruprec',
+                tags: ['api', 'user'],
+                validate: {
+                    params: {
+                        userid: this.joi.string()
+                            .required()
+                            .description('User id from "LDAP"')
                     }
-                    reply(data);
-                });
+                }
+
             }
         });
 
