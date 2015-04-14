@@ -60,6 +60,8 @@ class User {
             this.db = server.plugins['bemily-database'];
             next();
         });
+
+
         this._register(server, options);
         next();
     };
@@ -69,14 +71,19 @@ class User {
         server.route({
             method: 'GET',
             path: '/me',
-            handler: (request, reply) => {
-                var userId = request.session.get('loggedInUser');
-                this.db.getUserById(userId, (err, data) => {
-                    if (err) {
-                        return reply(err).code(400);
-                    }
-                    reply(data);
-                })
+            config: {
+                handler: (request, reply) => {
+                    var userId = request.session.get('loggedInUser');
+                    this.db.getUserById(userId, (err, data) => {
+                        if (err) {
+                            return reply(err).code(400);
+                        }
+                        reply(data);
+                    })
+                },
+                description: 'Get all infromation about current user',
+                notes: 'Identification about current logged in user is get from session parameter "loggedInUser"',
+                tags: ['api', 'user']
             }
         });
 
