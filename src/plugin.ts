@@ -88,7 +88,8 @@ class User {
                     })
                 },
                 description: 'Get all information about current user',
-                notes: 'Identification about current logged in user is get from session parameter "loggedInUser"',
+                notes: 'Identification about current logged in user is get from session parameter "loggedInUser"' +
+                'Not testable with "hapi-swagger" plugin',
                 tags: ['api', 'user']
             }
         });
