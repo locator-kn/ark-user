@@ -1,5 +1,5 @@
 {
-  "name": "bemily-user",
+  "name": "backend-user",
   "version": "0.1.0",
   "description": "Superpower",
   "main": "index.js",
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/premily/bemily-user.git"
+    "url": "git://github.com/tripl-kn/backend-user.git"
   },
   "peerDependencies": {
     "hapi": ">=8.x.x"
