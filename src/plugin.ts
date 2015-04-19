@@ -13,10 +13,7 @@ export interface IUser {
     surname: string;
     mail: string;
     password: string;
-    major: string;
     picture: string;
-    semester: number;
-    subscribed_groups: string[];
     type: string;
 }
 
@@ -46,9 +43,6 @@ class User {
             picture: this.joi.optional(),
             mail: this.joi.string().email().required(),
             password: this.joi.string().required(),
-            major: this.joi.string(),
-            subscribed_groups: this.joi.array(),
-            semester: this.joi.number().integer(),
             type: this.joi.string().required().valid('user')
         });
 
@@ -62,8 +56,8 @@ class User {
     register:IRegister = (server, options, next) => {
         server.bind(this);
 
-        server.dependency('bemily-database', (server, next) => {
-            this.db = server.plugins['bemily-database'];
+        server.dependency('backend-database', (server, next) => {
+            this.db = server.plugins['backend-database'];
             next();
         });
 
