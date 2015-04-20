@@ -27,7 +27,7 @@ class User {
 
     constructor() {
         this.register.attributes = {
-            name: 'bemily-user',
+            name: 'backend-user',
             version: '0.1.0'
         };
         this.joi = require('joi');
