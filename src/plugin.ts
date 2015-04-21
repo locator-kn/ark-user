@@ -239,7 +239,12 @@ class User {
             path: '/users/{userid}',
             config: {
                 handler: (request, reply) => {
-
+                    this.db.deleteUserById(request.params.userid, (err, data) => {
+                        if (err) {
+                            return reply(this.boom.wrap(err, 400));
+                        }
+                        reply(data);
+                    });
                 },
                 description: 'delete a particular trip',
                 tags: ['api', 'trip'],
