@@ -73,7 +73,7 @@ class User {
             path: '/me',
             config: {
                 handler: (request, reply) => {
-                    if(!request.auth || !request.auth.credentials) {
+                    if (!request.auth || !request.auth.credentials) {
                         return reply(this.boom.badRequest('this should never happen'));
                     }
                     this.db.getUserById(request.auth.credentials.id, (err, data) => {
@@ -208,7 +208,7 @@ class User {
             path: '/users/{userid}/password',
             config: {
                 handler: (request, reply) => {
-                    this.db.updateUserPassword(request.params.userid, 'tmppass',(err, data) => {
+                    this.db.updateUserPassword(request.params.userid, request.payload.password, (err, data) => {
                         if (err) {
                             return reply(this.boom.wrap(err, 400));
                         }
@@ -223,7 +223,9 @@ class User {
                         userid: this.joi.string()
                             .required()
                             .description('User Id')
-                    }
+                    },
+                    payload: this.joi.object().keys({
+                        password: this.joi.string().required()})
                 }
 
             }
