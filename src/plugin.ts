@@ -204,7 +204,7 @@ class User {
 
 
 
-        // route to get user
+        // route to update user password
         server.route({
             method: 'PUT',
             path: '/users/{userid}/password',
@@ -218,7 +218,7 @@ class User {
                     });
                 },
                 description: 'update password of user by id',
-                notes: 'Important to add password as payload',
+                notes: 'Important: add password as payload',
                 tags: ['api', 'user'],
                 validate: {
                     params: {
@@ -230,6 +230,25 @@ class User {
                         password: this.joi.string().required()})
                 }
 
+            }
+        });
+
+        // delete a particular user
+        server.route({
+            method: 'DELETE',
+            path: '/users/{userid}',
+            config: {
+                handler: (request, reply) => {
+
+                },
+                description: 'delete a particular trip',
+                tags: ['api', 'trip'],
+                validate: {
+                    params: {
+                        userid: this.joi.string()
+                            .required()
+                    }
+                }
             }
         });
 
