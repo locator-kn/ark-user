@@ -67,26 +67,22 @@ class User {
     };
 
     private _register(server, options) {
-        // get user information about logged in user
+        // route to get user
         server.route({
             method: 'GET',
-            path: '/users/me',
+            path: '/users',
             config: {
                 handler: (request, reply) => {
-                    if (!request.auth || !request.auth.credentials) {
-                        return reply(this.boom.badRequest('this should never happen'));
-                    }
-                    this.db.getUserById(request.auth.credentials.id, (err, data) => {
+                    this.db.getUsers((err, data) => {
                         if (err) {
-                            return reply(err).code(400);
+                            return reply(this.boom.wrap(err, 400));
                         }
                         reply(data);
-                    })
+                    });
                 },
-                description: 'Get all information about current user',
-                notes: 'Identification about current logged in user is get from session parameter "loggedInUser"' +
-                'Not testable with "hapi-swagger" plugin',
+                description: 'Get all users',
                 tags: ['api', 'user']
+
             }
         });
 
@@ -117,24 +113,61 @@ class User {
             }
         });
 
-        // route to get user
+        // get user information about logged in user
         server.route({
             method: 'GET',
-            path: '/users',
+            path: '/users/me',
             config: {
                 handler: (request, reply) => {
-                    this.db.getUsers((err, data) => {
+                    if (!request.auth || !request.auth.credentials) {
+                        return reply(this.boom.badRequest('this should never happen'));
+                    }
+                    this.db.getUserById(request.auth.credentials.id, (err, data) => {
                         if (err) {
-                            return reply(this.boom.wrap(err, 400));
+                            return reply(err).code(400);
                         }
                         reply(data);
-                    });
+                    })
                 },
-                description: 'Get all users',
+                description: 'Get all information about current user',
+                notes: 'Identification about current logged in user is get from session parameter "loggedInUser"' +
+                'Not testable with "hapi-swagger" plugin',
                 tags: ['api', 'user']
-
             }
         });
+
+        // route to create new user
+        server.route({
+                method: 'POST',
+                path: '/users',
+                config: {
+                    handler: (request, reply) => {
+                        this.joi.validate(request.payload, this.userSchemaPOST, (err, user:IUser)=> {
+                            if (err) {
+                                return reply(this.boom.wrap(err, 400, err.details.message));
+                            } else {
+                                this.db.createUser(user, (err, data) => {
+                                    if (err) {
+                                        return reply(this.boom.wrap(err, 400, err.details.message));
+                                    }
+                                    reply(data);
+                                });
+
+                            }
+                        });
+                    },
+                    description: 'Create new user',
+                    notes: 'Create with _id (from LDAP) and without _rev',
+                    tags: ['api', 'user'],
+                    validate: {
+                        payload: this.userSchemaPOST
+                            .required()
+                            .description('User JSON object')
+                    }
+
+                }
+            }
+        );
 
         // route to update user information
         server.route({
@@ -169,38 +202,7 @@ class User {
             }
         );
 
-        // route to create new user
-        server.route({
-                method: 'POST',
-                path: '/users',
-                config: {
-                    handler: (request, reply) => {
-                        this.joi.validate(request.payload, this.userSchemaPOST, (err, user:IUser)=> {
-                            if (err) {
-                                return reply(this.boom.wrap(err, 400, err.details.message));
-                            } else {
-                                this.db.createUser(user, (err, data) => {
-                                    if (err) {
-                                        return reply(this.boom.wrap(err, 400, err.details.message));
-                                    }
-                                    reply(data);
-                                });
 
-                            }
-                        });
-                    },
-                    description: 'Create new user',
-                    notes: 'Create with _id (from LDAP) and without _rev',
-                    tags: ['api', 'user'],
-                    validate: {
-                        payload: this.userSchemaPOST
-                            .required()
-                            .description('User JSON object')
-                    }
-
-                }
-            }
-        );
 
         // route to get user
         server.route({
