@@ -202,6 +202,34 @@ class User {
             }
         );
 
+        // route to get user
+        server.route({
+            method: 'PUT',
+            path: '/users/{userid}/password',
+            config: {
+                handler: (request, reply) => {
+                    this.db.updateUserPassword(request.params.userid, 'tmppass',(err, data) => {
+                        if (err) {
+                            return reply(this.boom.wrap(err, 400));
+                        }
+                        reply(data);
+                    });
+                },
+                description: 'update password of user by id',
+                notes: 'Important to add password as payload',
+                tags: ['api', 'user'],
+                validate: {
+                    params: {
+                        userid: this.joi.string()
+                            .required()
+                            .description('User Id')
+                    }
+                }
+
+            }
+        });
+
+
         return 'register';
     }
 
