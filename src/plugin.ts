@@ -70,7 +70,7 @@ class User {
         // get user information about logged in user
         server.route({
             method: 'GET',
-            path: '/me',
+            path: '/users/me',
             config: {
                 handler: (request, reply) => {
                     if (!request.auth || !request.auth.credentials) {
@@ -139,14 +139,14 @@ class User {
         // route to update user information
         server.route({
                 method: 'PUT',
-                path: '/users',
+                path: '/users/{userid}',
                 config: {
                     handler: (request, reply) => {
                         this.joi.validate(request.payload, this.userSchemaPUT, (err, user:IUser)=> {
                             if (err) {
                                 return reply(this.boom.wrap(err, 400, err.details.message));
                             } else {
-                                this.db.updateUser(user._id, user._rev, user, (err, data) => {
+                                this.db.updateUser(request.params.userid, user._rev, user, (err, data) => {
                                     if (err) {
                                         return reply(this.boom.wrap(err, 400));
                                     }
