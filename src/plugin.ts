@@ -157,7 +157,7 @@ class User {
                         });
                     },
                     description: 'Create new user',
-                    notes: 'Create with _id (from LDAP) and without _rev',
+                    notes: '_id is the mail address of the user',
                     tags: ['api', 'user'],
                     validate: {
                         payload: this.userSchemaPOST
