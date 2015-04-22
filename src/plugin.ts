@@ -37,7 +37,6 @@ class User {
 
     private initSchemas():void {
         var user = this.joi.object().keys({
-            _id: this.joi.string().required(),
             name: this.joi.string().required(),
             surname: this.joi.string().required(),
             picture: this.joi.optional(),
@@ -46,10 +45,12 @@ class User {
             type: this.joi.string().required().valid('user')
         });
 
-        var rev = this.joi.object().keys({_rev: this.joi.string().required()});
+        var putMethodElements = this.joi.object().keys({
+            _id: this.joi.string().required(),
+            _rev: this.joi.string().required()});
 
         this.userSchemaPOST = user;
-        this.userSchemaPUT = rev.concat(user);
+        this.userSchemaPUT = putMethodElements.concat(user);
 
     }
 
