@@ -194,6 +194,11 @@ class User {
                     notes: 'It is important to add the "_rev" property!',
                     tags: ['api', 'user'],
                     validate: {
+                        params: {
+                            userid: this.joi.string()
+                                .required()
+                                .description('User Id')
+                        },
                         payload: this.userSchemaPUT
                             .required()
                             .description('User JSON object WITH _rev')
