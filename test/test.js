@@ -18,7 +18,6 @@ describe('Plugin', function () {
         server.register(plugin, function (err) {
             expect(err).to.not.exist();
             expect(plugin._register).to.be.a.function();
-            expect(plugin._register()).to.be.a.string();
             done();
         });
     });
