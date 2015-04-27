@@ -146,7 +146,7 @@ class User {
                     handler: (request, reply) => {
                         this.db.createUser(request.payload, (err, data) => {
                             if (err) {
-                                return reply(this.boom.wrap(err, 400, err.details.message));
+                                return reply(this.boom.wrap(err, 400));
                             }
                             reply(data);
                         });
