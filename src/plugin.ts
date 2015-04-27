@@ -41,8 +41,7 @@ class User {
             surname: this.joi.string().required(),
             picture: this.joi.optional(),
             mail: this.joi.string().email().required(),
-            password: this.joi.string().required(),
-            type: this.joi.string().required().valid('user')
+            password: this.joi.string().required()
         });
 
         var putMethodElements = this.joi.object().keys({
@@ -144,7 +143,7 @@ class User {
                 path: '/users',
                 config: {
                     handler: (request, reply) => {
-                        this.db.createUser(user, (err, data) => {
+                        this.db.createUser(request.payload, (err, data) => {
                             if (err) {
                                 return reply(this.boom.wrap(err, 400, err.details.message));
                             }
@@ -170,7 +169,7 @@ class User {
                 path: '/users/{userid}',
                 config: {
                     handler: (request, reply) => {
-                        this.db.updateUser(request.params.userid, user._rev, user, (err, data) => {
+                        this.db.updateUser(request.params.userid, request.payload._rev, request.payload.user, (err, data) => {
                             if (err) {
                                 return reply(this.boom.wrap(err, 400));
                             }
