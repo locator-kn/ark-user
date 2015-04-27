@@ -47,7 +47,8 @@ class User {
 
         var putMethodElements = this.joi.object().keys({
             _id: this.joi.string().required(),
-            _rev: this.joi.string().required()});
+            _rev: this.joi.string().required()
+        });
 
         this.userSchemaPOST = user;
         this.userSchemaPUT = putMethodElements.concat(user);
@@ -143,18 +144,11 @@ class User {
                 path: '/users',
                 config: {
                     handler: (request, reply) => {
-                        this.joi.validate(request.payload, this.userSchemaPOST, (err, user:IUser)=> {
+                        this.db.createUser(user, (err, data) => {
                             if (err) {
                                 return reply(this.boom.wrap(err, 400, err.details.message));
-                            } else {
-                                this.db.createUser(user, (err, data) => {
-                                    if (err) {
-                                        return reply(this.boom.wrap(err, 400, err.details.message));
-                                    }
-                                    reply(data);
-                                });
-
                             }
+                            reply(data);
                         });
                     },
                     description: 'Create new user',
@@ -176,18 +170,11 @@ class User {
                 path: '/users/{userid}',
                 config: {
                     handler: (request, reply) => {
-                        this.joi.validate(request.payload, this.userSchemaPUT, (err, user:IUser)=> {
+                        this.db.updateUser(request.params.userid, user._rev, user, (err, data) => {
                             if (err) {
-                                return reply(this.boom.wrap(err, 400, err.details.message));
-                            } else {
-                                this.db.updateUser(request.params.userid, user._rev, user, (err, data) => {
-                                    if (err) {
-                                        return reply(this.boom.wrap(err, 400));
-                                    }
-                                    reply(data);
-                                });
-
+                                return reply(this.boom.wrap(err, 400));
                             }
+                            reply(data);
                         });
                     },
                     description: 'Update user information',
@@ -207,7 +194,6 @@ class User {
                 }
             }
         );
-
 
 
         // route to update user password
@@ -233,7 +219,8 @@ class User {
                             .description('User Id')
                     },
                     payload: this.joi.object().keys({
-                        password: this.joi.string().required()})
+                        password: this.joi.string().required()
+                    })
                 }
 
             }
