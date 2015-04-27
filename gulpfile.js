@@ -5,7 +5,7 @@ var notifier = require('node-notifier');
 var sourcemaps = require('gulp-sourcemaps');
 var typescript15 = require('typescript');
 
-var tsProjectTripl = ts.createProject({
+var tsProjectArk = ts.createProject({
     declarationFiles: true,
     noExternalResolve: false,
     module: 'commonjs',
@@ -17,7 +17,7 @@ var tsProjectTripl = ts.createProject({
 gulp.task('ts', function() {
     var tsResult = gulp.src('src/**/*.ts')
         .pipe(sourcemaps.init())
-        .pipe(ts(tsProjectTripl));
+        .pipe(ts(tsProjectArk));
 
     tsResult._events.error[0] = function(error) {
         notifier.notify({
