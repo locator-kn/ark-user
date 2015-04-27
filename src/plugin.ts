@@ -41,7 +41,8 @@ class User {
             surname: this.joi.string().required(),
             picture: this.joi.optional(),
             mail: this.joi.string().email().required(),
-            password: this.joi.string().required()
+            password: this.joi.string().required(),
+            type: this.joi.string().required().valid('user')
         });
 
         var putMethodElements = this.joi.object().keys({
