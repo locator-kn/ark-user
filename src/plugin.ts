@@ -236,14 +236,6 @@ class User {
             }
         });
 
-
         return 'register';
     }
-
-    errorInit(err) {
-        if (err) {
-            console.log('Error: init plugin failed:', err);
-        }
-    }
-
 }
