@@ -3,20 +3,6 @@ export interface IRegister {
     attributes?: any;
 }
 
-/**
- * structure of user in database
- */
-export interface IUser {
-    _id: string;
-    _rev?: string;
-    name: string;
-    surname: string;
-    mail: string;
-    password: string;
-    picture: string;
-    type: string;
-}
-
 export default
 class User {
     db:any;
