@@ -10,6 +10,7 @@ class User {
     userSchemaPOST:any;
     userSchemaPUT:any;
     boom:any;
+    bcrypt:any;
 
     constructor() {
         this.register.attributes = {
@@ -18,6 +19,7 @@ class User {
         };
         this.joi = require('joi');
         this.boom = require('boom');
+        this.bcrypt = require('bcrypt');
         this.initSchemas();
     }
 
@@ -130,12 +132,18 @@ class User {
                 path: '/users',
                 config: {
                     handler: (request, reply) => {
-                        this.db.createUser(request.payload, (err, data) => {
-                            if (err) {
-                                return reply(this.boom.wrap(err, 400));
-                            }
-                            reply(data);
+                        this.bcrypt.genSalt(10, (err, salt) => {
+                            this.bcrypt.hash(request.payload.password, salt, (err, hash) => {
+                                request.payload.password = hash;
+                                this.db.createUser(request.payload, (err, data) => {
+                                    if (err) {
+                                        return reply(this.boom.wrap(err, 400));
+                                    }
+                                    reply(data);
+                                });
+                            });
                         });
+
                     },
                     description: 'Create new user',
                     notes: '_id is the mail address of the user',
