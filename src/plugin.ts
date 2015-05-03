@@ -13,9 +13,9 @@ class User {
 
     constructor() {
         this.register.attributes = {
-            name: 'ark-user',
-            version: '0.1.0'
+            pkg: require('./../../package.json')
         };
+
         this.joi = require('joi');
         this.boom = require('boom');
         this.initSchemas();
