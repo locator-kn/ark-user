@@ -128,66 +128,63 @@ class User {
 
         // route to create new user
         server.route({
-                method: 'POST',
-                path: '/users',
-                config: {
-                    handler: (request, reply) => {
-                        this.bcrypt.genSalt(10, (err, salt) => {
-                            this.bcrypt.hash(request.payload.password, salt, (err, hash) => {
-                                request.payload.password = hash;
-                                this.db.createUser(request.payload, (err, data) => {
-                                    if (err) {
-                                        return reply(this.boom.wrap(err, 400));
-                                    }
-                                    reply(data);
-                                });
+            method: 'POST',
+            path: '/users',
+            config: {
+                handler: (request, reply) => {
+                    this.bcrypt.genSalt(10, (err, salt) => {
+                        this.bcrypt.hash(request.payload.password, salt, (err, hash) => {
+                            request.payload.password = hash;
+                            this.db.createUser(request.payload, (err, data) => {
+                                if (err) {
+                                    return reply(this.boom.wrap(err, 400));
+                                }
+                                reply(data);
                             });
                         });
+                    });
 
-                    },
-                    description: 'Create new user',
-                    notes: '_id is the mail address of the user',
-                    tags: ['api', 'user'],
-                    validate: {
-                        payload: this.userSchemaPOST
-                            .required()
-                            .description('User JSON object')
-                    }
-
+                },
+                description: 'Create new user',
+                notes: '_id is the mail address of the user',
+                tags: ['api', 'user'],
+                validate: {
+                    payload: this.userSchemaPOST
+                        .required()
+                        .description('User JSON object')
                 }
             }
-        );
+        });
 
         // route to update user information
         server.route({
-                method: 'PUT',
-                path: '/users/{userid}',
-                config: {
-                    handler: (request, reply) => {
-                        this.db.updateUser(request.params.userid, request.payload._rev, request.payload.user, (err, data) => {
-                            if (err) {
-                                return reply(this.boom.wrap(err, 400));
-                            }
-                            reply(data);
-                        });
-                    },
-                    description: 'Update user information',
-                    notes: 'It is important to add the "_rev" property!',
-                    tags: ['api', 'user'],
-                    validate: {
-                        params: {
-                            userid: this.joi.string()
-                                .required()
-                                .description('User Id')
-                        },
-                        payload: this.userSchemaPUT
+            method: 'PUT',
+            path: '/users/{userid}',
+            config: {
+                handler: (request, reply) => {
+                    this.db.updateUser(request.params.userid, request.payload._rev, request.payload.user, (err, data) => {
+                        if (err) {
+                            return reply(this.boom.wrap(err, 400));
+                        }
+                        reply(data);
+                    });
+                },
+                description: 'Update user information',
+                notes: 'It is important to add the "_rev" property!',
+                tags: ['api', 'user'],
+                validate: {
+                    params: {
+                        userid: this.joi.string()
                             .required()
-                            .description('User JSON object WITH _rev')
-                    }
-
+                            .description('User Id')
+                    },
+                    payload: this.userSchemaPUT
+                        .required()
+                        .description('User JSON object WITH _rev')
                 }
+
             }
-        );
+        });
 
 
         // route to update user password
