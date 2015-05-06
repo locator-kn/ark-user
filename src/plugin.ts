@@ -109,10 +109,10 @@ class User {
             path: '/users/me',
             config: {
                 handler: (request, reply) => {
-                    if (!request.auth || !request.auth.credentials || !request.auth.credentials._id) {
+                    if (!request.auth || !request.auth.credentials || !request.auth.credentials.id) {
                         return reply(this.boom.badRequest('this should never happen'));
                     }
-                    this.db.getUserById(request.auth.credentials._id, (err, data) => {
+                    this.db.getUserById(request.auth.credentials.id, (err, data) => {
                         if (err) {
                             return reply(this.boom.badRequest(err));
                         }
