@@ -109,10 +109,16 @@ class User {
             path: '/users/me',
             config: {
                 handler: (request, reply) => {
-                    if (!request.auth || !request.auth.credentials || !request.auth.credentials.id) {
-                        return reply(this.boom.badRequest('this should never happen'));
+                    var id = null;
+                    // TODO improve
+                    if (!request.auth || !request.auth.credentials) {
+                        if(!request.auth.credentials.id || !request.auth.credentials._id) {
+                            return reply(this.boom.badRequest('this should never happen'));
+                        } else {
+                            id = request.auth.credentials.id || request.auth.credentials._id;
+                        }
                     }
-                    this.db.getUserById(request.auth.credentials.id, (err, data) => {
+                    this.db.getUserById(id, (err, data) => {
                         if (err) {
                             return reply(this.boom.badRequest(err));
                         }
