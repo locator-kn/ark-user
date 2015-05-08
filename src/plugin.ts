@@ -142,6 +142,43 @@ class User {
             }
         });
 
+        // Upload a profile picture
+        server.route({
+            method: ['POST', 'PUT'],
+            path: 'users/{userid}/picture/', // 'users/my/picture/'
+            config: {
+                // TODO: check auth
+                auth: false,
+                payload: {
+                    output: 'stream',
+                    parse: true,
+                    allow: 'multipart/form-data',
+                    maxBytes: 1000000000000
+                },
+                handler: (request, reply) => {
+                    var width = request.payload.width;
+                    var height = request.payload.height;
+                    var xCoord = request.payload.xCoord;
+                    var yCoord = request.payload.yCoord;
+
+                    var attachmentData = {
+                        name: 'profile.jpg',
+                        'Content-Type': 'multipart/form-data'
+                    };
+
+                    // create a read stream
+                    var readStream = request.payload.file;
+
+                    // crop it and send attach it to the document
+                }
+
+            },
+            description: 'Upload profile picture of a user',
+            notes: 'The picture will be streamed and attached to the document of this user',
+            tags: ['api', 'user'],
+            validate: {}
+        });
+
         // get user information about logged in user
         server.route({
             method: 'GET',
