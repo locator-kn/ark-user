@@ -57,7 +57,7 @@ class User {
     };
 
     private _register(server, options) {
-        // route to get user
+        // route to get all users
         server.route({
             method: 'GET',
             path: '/users',
@@ -97,6 +97,44 @@ class User {
                         userid: this.joi.string()
                             .required()
                             .description('User id from "LDAP"')
+                    }
+                }
+
+            }
+        });
+
+        // get picture of a user
+        server.route({
+            method: 'GET',
+            path: '/users/{userid}/{name}.{ext}',
+            config: {
+                // TODO: check auth
+                auth: false,
+                handler: (request, reply) => {
+                    // create file name
+                    var file = request.params.name  + request.params.ext;
+
+                    // get file stream from database
+                    this.db.getPicture(request.params.tripid, file, (err, data) => {
+                        if (err) {
+                            return reply(this.boom.wrap(err, 400));
+                        }
+                        // reply stream
+                        reply(data)
+                    });
+                },
+                description: 'Get the preview picture of a ' +
+                'user by id',
+                notes: 'sample call: /users/1222123132/nameOfTheUser-profile.jpg',
+                tags: ['api', 'user'],
+                validate: {
+                    params: {
+                        userid: this.joi.string()
+                            .required(),
+                        name: this.joi.string()
+                            .required(),
+                        ext: this.joi.string()
+                            .required().regex(/^jpg|png$/)
                     }
                 }
 
