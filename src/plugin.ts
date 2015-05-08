@@ -116,7 +116,7 @@ class User {
                         if (err) {
                             return reply(this.boom.badRequest(err));
                         }
-                        reply(data);
+                        reply(data[0]);
                     })
                 },
                 description: 'Get all information about current user',
