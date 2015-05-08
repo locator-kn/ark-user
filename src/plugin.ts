@@ -112,10 +112,11 @@ class User {
                 auth: false,
                 handler: (request, reply) => {
                     // create file name
-                    var file = request.params.name  + request.params.ext;
+                    var file = request.params.name + '.' + request.params.ext;
+
 
                     // get file stream from database
-                    this.db.getPicture(request.params.tripid, file, (err, data) => {
+                    this.db.getPicture(request.params.userid, file, (err, data) => {
                         if (err) {
                             return reply(this.boom.wrap(err, 400));
                         }
