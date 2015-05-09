@@ -11,6 +11,7 @@ class User {
     userSchemaPUT:any;
     boom:any;
     bcrypt:any;
+    gm:any;
 
     constructor() {
         this.register.attributes = {
