@@ -21,7 +21,6 @@ class User {
         this.joi = require('joi');
         this.boom = require('boom');
         this.bcrypt = require('bcrypt');
-
         this.gm = require('gm');
         this.initSchemas();
     }
@@ -141,7 +140,7 @@ class User {
         // Upload a profile picture
         server.route({
             method: ['POST', 'PUT'],
-            path: 'users/{userid}/picture/', // 'users/my/picture/'
+            path: '/users/{userid}/picture', // 'users/my/picture/'
             config: {
                 // TODO: check auth
                 auth: false,
@@ -149,6 +148,7 @@ class User {
                     output: 'stream',
                     parse: true,
                     allow: 'multipart/form-data',
+                    // TODO: evaluate real value
                     maxBytes: 1000000000000
                 },
                 handler: (request, reply) => {
@@ -157,27 +157,49 @@ class User {
                     var xCoord = request.payload.xCoord;
                     var yCoord = request.payload.yCoord;
 
-
-                    // create a read stream
-                    var readStream = request.payload.file;
-
-                    // TODO: crop it first
-                    var stream = this.gm(readStream)
+                    // create a read stream and crop it
+                    var readStream = this.gm(request.payload.file)
                         .crop(width, height, xCoord, yCoord)
                         .stream();
 
-                    this.db.savePicture(request.params.userid, 'profile.jpg', stream, (err) => {
+                    this.db.savePicture(request.params.userid, 'profile.jpg', readStream, (err) => {
                         if (err) {
-                            reply(err)
+                            reply(err);
                         } else {
-                            reply({message: 'ok'})
+                            reply({message: 'ok'});
                         }
                     });
+
+                    // TODO: also save thumbnail and update URL in user document
                 },
                 description: 'Upload profile picture of a user',
                 notes: 'The picture will be streamed and attached to the document of this user',
                 tags: ['api', 'user'],
-                validate: {}
+                validate: {
+                    params: {
+                        userid: this.joi.string().
+                            required()
+                    },
+                    payload: {
+                        // validate file type to be an image
+                        file: this.joi.object({
+                            hapi: {
+                                headers: {
+                                    'content-type': this.joi.string()
+                                        .regex(/^image\/(?:jpg|png|jpeg)$/)
+                                        .required()
+                                }
+                            }
+                        }).options({allowUnknown: true}),
+                        // validate that a correct dimension object is emitted
+                        dimensions: this.joi.object({
+                            width: this.joi.number().integer().positive().required(),
+                            height: this.joi.number().integer().positive().required(),
+                            xCoord: this.joi.number().integer().positive().required(),
+                            yCoord: this.joi.number().integer().positive().required()
+                        }).required()
+                    }
+                }
             }
         });
 
