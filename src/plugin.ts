@@ -109,15 +109,8 @@ class User {
             path: '/users/me',
             config: {
                 handler: (request, reply) => {
-                    var id = null;
-                    // TODO improve
-                    if (!request.auth || !request.auth.credentials) {
-                        if(!request.auth.credentials.id || !request.auth.credentials._id) {
-                            return reply(this.boom.badRequest('this should never happen'));
-                        } else {
-                            id = request.auth.credentials.id || request.auth.credentials._id;
-                        }
-                    }
+                    var id = request.auth.credentials._id;
+
                     this.db.getUserById(id, (err, data) => {
                         if (err) {
                             return reply(this.boom.badRequest(err));
@@ -126,8 +119,7 @@ class User {
                     })
                 },
                 description: 'Get all information about current user',
-                notes: 'Identification about current logged in user is get from session parameter "loggedInUser"' +
-                'Not testable with "hapi-swagger" plugin',
+                notes: 'Identification about current logged in user is get from session parameter "loggedInUser"',
                 tags: ['api', 'user']
             }
         });
