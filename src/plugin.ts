@@ -20,6 +20,8 @@ class User {
         this.joi = require('joi');
         this.boom = require('boom');
         this.bcrypt = require('bcrypt');
+
+        this.gm = require('gm');
         this.initSchemas();
     }
 
@@ -114,19 +116,12 @@ class User {
                     // create file name
                     var file = request.params.name + '.' + request.params.ext;
 
-
-                    // get file stream from database
-                    this.db.getPicture(request.params.userid, file, (err, data) => {
-                        if (err) {
-                            return reply(this.boom.wrap(err, 400));
-                        }
-                        // reply stream
-                        reply(data)
-                    });
+                    // get file stream from database (no error handling, because there is none)
+                    reply(this.db.getPicture(request.params.userid, file));
                 },
                 description: 'Get the preview picture of a ' +
                 'user by id',
-                notes: 'sample call: /users/1222123132/nameOfTheUser-profile.jpg',
+                notes: 'sample call: /users/1222123132/profile.jpg',
                 tags: ['api', 'user'],
                 validate: {
                     params: {
@@ -161,22 +156,28 @@ class User {
                     var xCoord = request.payload.xCoord;
                     var yCoord = request.payload.yCoord;
 
-                    var attachmentData = {
-                        name: 'profile.jpg',
-                        'Content-Type': 'multipart/form-data'
-                    };
 
                     // create a read stream
                     var readStream = request.payload.file;
 
-                    // crop it and send attach it to the document
-                }
+                    // TODO: crop it first
+                    var stream = this.gm(readStream)
+                        .crop(width, height, xCoord, yCoord)
+                        .stream();
 
-            },
-            description: 'Upload profile picture of a user',
-            notes: 'The picture will be streamed and attached to the document of this user',
-            tags: ['api', 'user'],
-            validate: {}
+                    this.db.savePicture(request.params.userid, 'profile.jpg', stream, (err) => {
+                        if (err) {
+                            reply(err)
+                        } else {
+                            reply({message: 'ok'})
+                        }
+                    });
+                },
+                description: 'Upload profile picture of a user',
+                notes: 'The picture will be streamed and attached to the document of this user',
+                tags: ['api', 'user'],
+                validate: {}
+            }
         });
 
         // get user information about logged in user
