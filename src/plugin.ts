@@ -12,6 +12,7 @@ class User {
     boom:any;
     bcrypt:any;
     gm:any;
+    regex:any;
 
     constructor() {
         this.register.attributes = {
@@ -22,6 +23,7 @@ class User {
         this.boom = require('boom');
         this.bcrypt = require('bcrypt');
         this.gm = require('gm');
+        this.regex = require('locators-regex');
         this.initSchemas();
     }
 
@@ -130,7 +132,7 @@ class User {
                         name: this.joi.string()
                             .required(),
                         ext: this.joi.string()
-                            .required().regex(/^jpg|png$/)
+                            .required().regex(this.regex.imageExtension)
                     }
                 }
 
@@ -152,17 +154,20 @@ class User {
                     maxBytes: 1000000000000
                 },
                 handler: (request, reply) => {
-                    var width = request.payload.width;
-                    var height = request.payload.height;
-                    var xCoord = request.payload.xCoord;
-                    var yCoord = request.payload.yCoord;
+
+                    var filename = 'profile.' + request.payload.file.hapi.headers['content-type']
+                            .match(this.regex.imageExtension);
+                    console.log(filename);
 
                     // create a read stream and crop it
                     var readStream = this.gm(request.payload.file)
-                        .crop(width, height, xCoord, yCoord)
+                        .crop(request.payload.width
+                        , request.payload.height
+                        , request.payload.xCoord
+                        , request.payload.yCoord)
                         .stream();
 
-                    this.db.savePicture(request.params.userid, 'profile.jpg', readStream, (err) => {
+                    this.db.savePicture(request.params.userid, filename, readStream, (err) => {
                         if (err) {
                             reply(err);
                         } else {
@@ -186,18 +191,17 @@ class User {
                             hapi: {
                                 headers: {
                                     'content-type': this.joi.string()
-                                        .regex(/^image\/(?:jpg|png|jpeg)$/)
+                                        .regex(this.regex.imageContentType)
                                         .required()
                                 }
                             }
-                        }).options({allowUnknown: true}),
+                        }).options({allowUnknown: true}).required(),
                         // validate that a correct dimension object is emitted
-                        dimensions: this.joi.object({
-                            width: this.joi.number().integer().positive().required(),
-                            height: this.joi.number().integer().positive().required(),
-                            xCoord: this.joi.number().integer().positive().required(),
-                            yCoord: this.joi.number().integer().positive().required()
-                        }).required()
+                        width: this.joi.number().integer().positive().required(),
+                        height: this.joi.number().integer().positive().required(),
+                        xCoord: this.joi.number().integer().positive().required(),
+                        yCoord: this.joi.number().integer().positive().required()
+
                     }
                 }
             }

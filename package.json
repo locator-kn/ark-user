@@ -33,6 +33,7 @@
     "boom": "^2.7.0",
     "gm": "^1.17.0",
     "joi": "^6.1.1",
+    "locators-regex": "0.0.1",
     "typescript": "^1.5.0-alpha"
   }
 }
