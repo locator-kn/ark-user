@@ -1,3 +1,6 @@
+declare
+var Promise:any;
+
 export interface IRegister {
     (server:any, options:any, next:any): void;
     attributes?: any;
@@ -11,6 +14,8 @@ class User {
     userSchemaPUT:any;
     boom:any;
     bcrypt:any;
+    gm:any;
+    regex:any;
 
     constructor() {
         this.register.attributes = {
@@ -20,6 +25,8 @@ class User {
         this.joi = require('joi');
         this.boom = require('boom');
         this.bcrypt = require('bcrypt');
+        this.gm = require('gm');
+        this.regex = require('locators-regex');
         this.initSchemas();
     }
 
@@ -57,7 +64,7 @@ class User {
     };
 
     private _register(server, options) {
-        // route to get user
+        // route to get all users
         server.route({
             method: 'GET',
             path: '/users',
@@ -100,6 +107,120 @@ class User {
                     }
                 }
 
+            }
+        });
+
+        // get picture of a user
+        server.route({
+            method: 'GET',
+            path: '/users/{userid}/{name}.{ext}',
+            config: {
+                // TODO: check auth
+                auth: false,
+                handler: (request, reply) => {
+                    // create file name
+                    var file = request.params.name + '.' + request.params.ext;
+
+                    // get file stream from database (no error handling, because there is none)
+                    reply(this.db.getPicture(request.params.userid, file));
+                },
+                description: 'Get the preview picture of a ' +
+                'user by id',
+                notes: 'sample call: /users/1222123132/profile.jpg',
+                tags: ['api', 'user'],
+                validate: {
+                    params: {
+                        userid: this.joi.string()
+                            .required(),
+                        name: this.joi.string()
+                            .required(),
+                        ext: this.joi.string()
+                            .required().regex(this.regex.imageExtension)
+                    }
+                }
+
+            }
+        });
+
+        // Upload a profile picture
+        server.route({
+            method: ['POST', 'PUT'],
+            path: '/users/{userid}/picture', // 'users/my/picture/'
+            config: {
+                // TODO: check auth
+                auth: false,
+                payload: {
+                    output: 'stream',
+                    parse: true,
+                    allow: 'multipart/form-data',
+                    // TODO: evaluate real value
+                    maxBytes: 1000000000000
+                },
+                handler: (request, reply) => {
+
+                    var filename = 'profile.' + request.payload.file.hapi.headers['content-type']
+                            .match(this.regex.imageExtension);
+
+                    // create a read stream and crop it
+                    var readStream = this.gm(request.payload.file)
+                        .crop(request.payload.width
+                        , request.payload.height
+                        , request.payload.xCoord
+                        , request.payload.yCoord)
+                        .stream();
+
+                    var url = '/users/' + request.params.userid + '/' + filename;
+
+                    function replySuccess() {
+                        reply({
+                            message: 'ok',
+                            url: url
+                        });
+                    }
+
+                    this.db.savePicture(request.params.userid, filename, readStream)
+                        .then(() => {
+                            this.db.updateDocument(request.params.userid, {picture: url})
+                                .then(replySuccess)
+                                .catch(reason => {
+                                    console.log(reason);
+                                    return reply(this.boom.badRequest(reason));
+                                });
+                        })
+                        .catch(reason => {
+                            return reply(this.boom.badRequest(reason));
+                        });
+
+
+                    // TODO: also save thumbnail
+                },
+                description: 'Upload profile picture of a user',
+                notes: 'The picture will be streamed and attached to the document of this user',
+                tags: ['api', 'user'],
+                validate: {
+                    params: {
+                        userid: this.joi.string().
+                            required()
+                    },
+                    payload: {
+                        // validate file type to be an image
+                        file: this.joi.object({
+                            hapi: {
+                                headers: {
+                                    'content-type': this.joi.string()
+                                        .regex(this.regex.imageContentType)
+                                        .required()
+                                }
+                            }
+                        }).options({allowUnknown: true}).required(),
+                        // validate that a correct dimension object is emitted
+                        width: this.joi.number().integer().required(),
+                        height: this.joi.number().integer().required(),
+                        xCoord: this.joi.number().integer().required(),
+                        yCoord: this.joi.number().integer().required()
+
+                    }
+                }
             }
         });
 
