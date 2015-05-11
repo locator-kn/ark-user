@@ -134,6 +134,7 @@ class User {
                     this.bcrypt.genSalt(10, (err, salt) => {
                         this.bcrypt.hash(request.payload.password, salt, (err, hash) => {
                             request.payload.password = hash;
+                            request.payload.strategy = 'default';
                             this.db.createUser(request.payload, (err, data) => {
                                 if (err) {
                                     return reply(this.boom.wrap(err, 400));
