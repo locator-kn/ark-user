@@ -131,19 +131,25 @@ class User {
             config: {
                 auth: false,
                 handler: (request, reply) => {
-                    this.bcrypt.genSalt(10, (err, salt) => {
-                        this.bcrypt.hash(request.payload.password, salt, (err, hash) => {
-                            request.payload.password = hash;
-                            request.payload.strategy = 'default';
-                            this.db.createUser(request.payload, (err, data) => {
-                                if (err) {
-                                    return reply(this.boom.wrap(err, 400));
-                                }
-                                reply(data);
+                    this.db.getUserLogin(request.payload.mail).then((user) => {
+                        return reply(this.boom.badRequest('mail already exists'));
+                    }).catch((err) => {
+                        if(err) {
+                            return reply(this.boom.badRequest('something went wrong'));
+                        }
+                        this.bcrypt.genSalt(10, (err, salt) => {
+                            this.bcrypt.hash(request.payload.password, salt, (err, hash) => {
+                                request.payload.password = hash;
+                                request.payload.strategy = 'default';
+                                this.db.createUser(request.payload, (err, data) => {
+                                    if (err) {
+                                        return reply(this.boom.wrap(err, 400));
+                                    }
+                                    reply(data);
+                                });
                             });
                         });
                     });
-
                 },
                 description: 'Create new user',
                 notes: '_id is the mail address of the user',
