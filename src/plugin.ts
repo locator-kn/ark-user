@@ -197,10 +197,10 @@ class User {
                             }
                         }).options({allowUnknown: true}).required(),
                         // validate that a correct dimension object is emitted
-                        width: this.joi.number().integer().positive().required(),
-                        height: this.joi.number().integer().positive().required(),
-                        xCoord: this.joi.number().integer().positive().required(),
-                        yCoord: this.joi.number().integer().positive().required()
+                        width: this.joi.number().integer().required(),
+                        height: this.joi.number().integer().required(),
+                        xCoord: this.joi.number().integer().required(),
+                        yCoord: this.joi.number().integer().required()
 
                     }
                 }
