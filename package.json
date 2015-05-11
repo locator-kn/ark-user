@@ -1,6 +1,6 @@
 {
   "name": "ark-user",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Superpower",
   "main": "index.js",
   "scripts": {
