@@ -266,6 +266,11 @@ class User {
                                     if (err) {
                                         return reply(this.boom.wrap(err, 400));
                                     }
+                                    var userSessionData = {
+                                        mail: request.payload.mail,
+                                        _id: data.id
+                                    };
+                                    request.auth.session.set(userSessionData);
                                     reply(data);
                                 });
                             });
