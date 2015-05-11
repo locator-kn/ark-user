@@ -1,3 +1,6 @@
+declare
+var Promise:any;
+
 export interface IRegister {
     (server:any, options:any, next:any): void;
     attributes?: any;
@@ -157,7 +160,6 @@ class User {
 
                     var filename = 'profile.' + request.payload.file.hapi.headers['content-type']
                             .match(this.regex.imageExtension);
-                    console.log(filename);
 
                     // create a read stream and crop it
                     var readStream = this.gm(request.payload.file)
@@ -167,15 +169,30 @@ class User {
                         , request.payload.yCoord)
                         .stream();
 
-                    this.db.savePicture(request.params.userid, filename, readStream, (err) => {
-                        if (err) {
-                            reply(err);
-                        } else {
-                            reply({message: 'ok'});
-                        }
-                    });
+                    var url = '/users/' + request.params.userid + '/' + filename;
 
-                    // TODO: also save thumbnail and update URL in user document
+                    function replySuccess() {
+                        reply({
+                            message: 'ok',
+                            url: url
+                        });
+                    }
+
+                    this.db.savePicture(request.params.userid, filename, readStream)
+                        .then(() => {
+                            this.db.updateDocument(request.params.userid, {picture: url})
+                                .then(replySuccess)
+                                .catch(reason => {
+                                    console.log(reason);
+                                    return reply(this.boom.badRequest(reason));
+                                });
+                        })
+                        .catch(reason => {
+                            return reply(this.boom.badRequest(reason));
+                        });
+
+
+                    // TODO: also save thumbnail
                 },
                 description: 'Upload profile picture of a user',
                 notes: 'The picture will be streamed and attached to the document of this user',
