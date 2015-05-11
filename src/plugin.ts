@@ -129,6 +129,7 @@ class User {
             method: 'POST',
             path: '/users',
             config: {
+                auth: false,
                 handler: (request, reply) => {
                     this.bcrypt.genSalt(10, (err, salt) => {
                         this.bcrypt.hash(request.payload.password, salt, (err, hash) => {
