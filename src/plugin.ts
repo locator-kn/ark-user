@@ -33,7 +33,7 @@ class User {
     private initSchemas():void {
         var user = this.joi.object().keys({
             name: this.joi.string().required(),
-            surname: this.joi.string().required(),
+            surname: this.joi.string(),
             picture: this.joi.optional(),
             mail: this.joi.string().email().required(),
             password: this.joi.string().required(),
@@ -230,19 +230,17 @@ class User {
             path: '/users/me',
             config: {
                 handler: (request, reply) => {
-                    if (!request.auth || !request.auth.credentials || !request.auth.credentials._id) {
-                        return reply(this.boom.badRequest('this should never happen'));
-                    }
-                    this.db.getUserById(request.auth.credentials._id, (err, data) => {
+                    var id = request.auth.credentials._id;
+
+                    this.db.getUserById(id, (err, data) => {
                         if (err) {
                             return reply(this.boom.badRequest(err));
                         }
-                        reply(data);
+                        reply(data[0]);
                     })
                 },
                 description: 'Get all information about current user',
-                notes: 'Identification about current logged in user is get from session parameter "loggedInUser"' +
-                'Not testable with "hapi-swagger" plugin',
+                notes: 'Identification about current logged in user is get from session parameter "loggedInUser"',
                 tags: ['api', 'user']
             }
         });
@@ -252,6 +250,7 @@ class User {
             method: 'POST',
             path: '/users',
             config: {
+                auth: false,
                 handler: (request, reply) => {
                     this.bcrypt.genSalt(10, (err, salt) => {
                         this.bcrypt.hash(request.payload.password, salt, (err, hash) => {

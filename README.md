@@ -1,27 +1,52 @@
-# User-Plugin
+# User
 
-## Routes
+### Routes
 ####GET
 
 |Ressource   | Description  |  on Success | on Failure |
 |---|---|---|---|
-|/users/:ID   | returns profile information for requested user ID  | json object | statusCode: 404 | 
-|/me           | returns profile of current user  | json object | statusCode: 404 |
+|/users           | returns all users  | json object | statusCode: 404 |
+|/users/:userID | returns profile information for requested user ID  | json object | statusCode: 404 | 
+|/users/me           | returns profile of current user  | json object | statusCode: 404 |
 
 
 ####POST
 |Ressource   | Description  |  on Success | on Failure |
 |---|---|---|---|
-|/users   | create new user | statusCode: 200 | statusCode: 404 |
+|/users           | create new user  | statusCode: 200 | statusCode: 404 |
 
 ####PUT
 |Ressource   | Description  |  on Success | on Failure |
 |---|---|---|---|
-|/users   | update user informations  | statusCode: 200 | statusCode: 404 |
-|/users/:GROUP_ID   | add group to user  | statusCode: 200 | statusCode: 404 |
+|/users/me   | update user information  | statusCode: 200 | statusCode: 404 |
+|/users/me/password   | update user password  | statusCode: 200 | statusCode: 404 |
+|/users/:userID/password | update password of user by id  | statusCode: 200 | statusCode: 404 |
+|/users/:userID | update particular user  | statusCode: 200 | statusCode: 404 | 
+
+####DELETE
+|Ressource   | Description  |  on Success | on Failure |
+|---|---|---|---|
+|/users/:userID | delete user by userid  | statusCode: 200 | statusCode: 404 | 
 
 
-## Tests
 
-Tests can be run with `npm test` or `make test`, `make test-cov` and `test-cov-html`.
-Note:  `npm test` points to `make test-cov`. This is inspired from many hapi plugins.
+
+
+
+### Dummy Json Results
+```
+{
+   _id: '4234324342',
+   _rev: '1-dbe58c4eb46dc66b3b62ed4dfab2f3fe',
+   picture: 'data:image/jpeg;base64,/9j/4QAY...',
+   name: 'Doe',
+   surname: 'John',
+   description: 'Ich bin Steffen Ich bin Steffen, Steffen wollt ich schon immer sein',
+   mail: 'john.doe@info.de',
+   password: 'secret',
+   type: 'user'
+}
+ 
+
+```
+
