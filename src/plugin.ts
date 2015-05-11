@@ -158,41 +158,67 @@ class User {
                 },
                 handler: (request, reply) => {
 
-                    var filename = 'profile.' + request.payload.file.hapi.headers['content-type']
-                            .match(this.regex.imageExtension);
+                    var ext = request.payload.file.hapi.headers['content-type']
+                        .match(this.regex.imageExtension);
+                    var filename = 'profile.' + ext;
+                    var thumbname = 'profile-thumb.' + ext;
 
-                    // create a read stream and crop it
-                    var readStream = this.gm(request.payload.file)
+                    // crop it, scale it and return stream
+                    var imageStream = this.gm(request.payload.file)
                         .crop(request.payload.width
                         , request.payload.height
                         , request.payload.xCoord
                         , request.payload.yCoord)
+                        .resize(200,200)
                         .stream();
 
-                    var url = '/users/' + request.params.userid + '/' + filename;
+                    // crop it, scale it for thumbnail and return stream
+                    var thumbnailStream = this.gm(request.payload.file)
+                        .crop(request.payload.width
+                        , request.payload.height
+                        , request.payload.xCoord
+                        , request.payload.yCoord)
+                        .resize(120,120)
+                        .stream();
+
+
+                    // "/i/" will be mapped to /api/vX/ from nginx
+                    var url = '/i/users/' + request.params.userid + '/' + filename;
+                    var thumbURL = '/i/users/' + request.params.userid + '/' + thumbname;
+
+                    var imageLocation = {
+                        picture: url,
+                        thumbnail: thumbURL
+                    };
 
                     function replySuccess() {
                         reply({
                             message: 'ok',
-                            url: url
+                            imageLocation
                         });
                     }
 
-                    this.db.savePicture(request.params.userid, filename, readStream)
+                    function replyError(err) {
+                        return reply(this.boom.badRequest(err));
+                    }
+
+                    // perform all save actions
+
+                    // save image and return promise
+                    this.db.savePicture(request.params.userid, filename, imageStream)
                         .then(() => {
-                            this.db.updateDocument(request.params.userid, {picture: url})
-                                .then(replySuccess)
-                                .catch(reason => {
-                                    console.log(reason);
-                                    return reply(this.boom.badRequest(reason));
-                                });
+                            // save thumbnail and return promise
+                            return this.db.savePicture(request.params.userid, thumbname, thumbnailStream);
                         })
-                        .catch(reason => {
-                            return reply(this.boom.badRequest(reason));
+                        .then(() => {
+                            // update url fields in document
+                            return this.db.updateDocument(request.params.userid, {images: imageLocation});
+                        })
+                        .then(replySuccess)
+                        .catch((err) => {
+                            replyError(err)
                         });
 
-
-                    // TODO: also save thumbnail
                 },
                 description: 'Upload profile picture of a user',
                 notes: 'The picture will be streamed and attached to the document of this user',
