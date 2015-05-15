@@ -194,7 +194,7 @@ class User {
                     function replySuccess() {
                         reply({
                             message: 'ok',
-                            imageLocation
+                            imageLocation: imageLocation
                         });
                     }
 
