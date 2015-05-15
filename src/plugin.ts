@@ -18,6 +18,7 @@ class User {
     regex:any;
     mailer:any;
     uuid:any;
+    uri:string;
 
     constructor() {
         this.register.attributes = {
@@ -66,6 +67,7 @@ class User {
             next();
         });
 
+        this.uri = server.info.uri;
 
         this._register(server, options);
         next();
