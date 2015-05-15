@@ -294,6 +294,8 @@ class User {
                                     };
                                     request.auth.session.set(userSessionData);
                                     reply(data);
+
+                                    this.sendRegistrationMail();
                                 });
                             });
                         });
@@ -396,5 +398,15 @@ class User {
         });
 
         return 'register';
+    }
+
+    private sendRegistrationMail():void {
+
+        // TODO: send mail
+        // UUID:
+        // - view
+        //
+
+
     }
 }
