@@ -16,6 +16,7 @@ class User {
     bcrypt:any;
     gm:any;
     regex:any;
+    mailer:any;
 
     constructor() {
         this.register.attributes = {
@@ -55,6 +56,11 @@ class User {
 
         server.dependency('ark-database', (server, next) => {
             this.db = server.plugins['ark-database'];
+            next();
+        });
+
+        server.dependency('ark-mailer', (server, next) => {
+            this.mailer = server.plugins['ark-mailer'];
             next();
         });
 
