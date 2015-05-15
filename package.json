@@ -1,7 +1,7 @@
 {
   "name": "ark-user",
   "version": "0.6.0",
-  "description": "Superpower",
+  "description": "Plugin for handling all routes, which relate to a user.",
   "main": "index.js",
   "scripts": {
     "test": "make test-cov",
