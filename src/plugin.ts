@@ -17,6 +17,7 @@ class User {
     gm:any;
     regex:any;
     mailer:any;
+    uuid:any;
 
     constructor() {
         this.register.attributes = {
@@ -28,6 +29,7 @@ class User {
         this.bcrypt = require('bcrypt');
         this.gm = require('gm');
         this.regex = require('locators-regex');
+        this.uuid = require('node-uuid');
         this.initSchemas();
     }
 
@@ -290,6 +292,8 @@ class User {
                             this.bcrypt.hash(request.payload.password, salt, (err, hash) => {
                                 request.payload.password = hash;
                                 request.payload.strategy = 'default';
+                                request.payload.uuid = ;
+
                                 this.db.createUser(request.payload, (err, data) => {
                                     if (err) {
                                         return reply(this.boom.wrap(err, 400));
