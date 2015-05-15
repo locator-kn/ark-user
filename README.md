@@ -42,10 +42,13 @@
 {
    _id: '4234324342',
    _rev: '1-dbe58c4eb46dc66b3b62ed4dfab2f3fe',
-   picture: 'data:image/jpeg;base64,/9j/4QAY...',
    name: 'Doe',
    surname: 'John',
    description: 'Ich bin Steffen Ich bin Steffen, Steffen wollt ich schon immer sein',
+   "imageLocation": {
+     "picture": "/i/users/368f5b48e4f45213ed912dd1e30377df/profile.png", // "/i" will be transformed to /api/vX/ from ngnix
+     "thumbnail": "/i/users/368f5b48e4f45213ed912dd1e30377df/profile-thumb.png"
+   },
    mail: 'john.doe@info.de',
    password: 'secret',
    type: 'user'
