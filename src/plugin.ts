@@ -35,35 +35,6 @@ class User {
         this.initSchemas();
     }
 
-    private initSchemas():void {
-        var user = this.joi.object().keys({
-            name: this.joi.string().required(),
-            surname: this.joi.string(),
-            picture: this.joi.optional(),
-            mail: this.joi.string().email().required(),
-            password: this.joi.string().required(),
-            type: this.joi.string().required().valid('user')
-        });
-
-        var putMethodElements = this.joi.object().keys({
-            _id: this.joi.string().required(),
-            _rev: this.joi.string().required()
-        });
-
-        this.userSchemaPOST = user;
-        this.userSchemaPUT = putMethodElements.concat(user);
-
-        this.fileSchema = this.joi.object({
-            hapi: {
-                headers: {
-                    'content-type': this.joi.string()
-                        .regex(this.regex.imageContentType)
-                        .required()
-                }
-            }
-        }).options({allowUnknown: true}).required();
-    }
-
     register:IRegister = (server, options, next) => {
         server.bind(this);
 
@@ -183,16 +154,7 @@ class User {
             method: 'GET',
             path: '/users/me',
             config: {
-                handler: (request, reply) => {
-                    var id = request.auth.credentials._id;
-
-                    this.db.getUserById(id, (err, data) => {
-                        if (err) {
-                            return reply(this.boom.badRequest(err));
-                        }
-                        reply(data[0]);
-                    })
-                },
+                handler: this.getMe,
                 description: 'Get all information about current user',
                 notes: 'Identification about current logged in user is get from session parameter "loggedInUser"',
                 tags: ['api', 'user']
@@ -205,37 +167,7 @@ class User {
             path: '/users',
             config: {
                 auth: false,
-                handler: (request, reply) => {
-                    this.db.getUserLogin(request.payload.mail).then((user) => {
-                        return reply(this.boom.badRequest('mail already exists'));
-                    }).catch((err) => {
-                        if (err) {
-                            return reply(this.boom.badRequest('something went wrong'));
-                        }
-                        this.bcrypt.genSalt(10, (err, salt) => {
-                            this.bcrypt.hash(request.payload.password, salt, (err, hash) => {
-                                request.payload.password = hash;
-                                request.payload.strategy = 'default';
-                                request.payload.uuid = this.uuid.v4();
-                                request.payload.verified = false;
-
-                                this.db.createUser(request.payload, (err, data) => {
-                                    if (err) {
-                                        return reply(this.boom.wrap(err, 400));
-                                    }
-                                    var userSessionData = {
-                                        mail: request.payload.mail,
-                                        _id: data.id
-                                    };
-                                    request.auth.session.set(userSessionData);
-                                    reply(data);
-
-                                    this.sendRegistrationMail(request.payload);
-                                });
-                            });
-                        });
-                    });
-                },
+                handler: this.createUser,
                 description: 'Create new user',
                 notes: '_id is the mail address of the user',
                 tags: ['api', 'user'],
@@ -252,14 +184,7 @@ class User {
             method: 'PUT',
             path: '/users/{userid}',
             config: {
-                handler: (request, reply) => {
-                    this.db.updateUser(request.params.userid, request.payload._rev, request.payload.user, (err, data) => {
-                        if (err) {
-                            return reply(this.boom.wrap(err, 400));
-                        }
-                        reply(data);
-                    });
-                },
+                handler: this.updateUser,
                 description: 'Update user information',
                 notes: 'It is important to add the "_rev" property!',
                 tags: ['api', 'user'],
@@ -444,6 +369,60 @@ class User {
     };
 
     /**
+     * Get current logged on user.
+     *
+     * @param request
+     * @param reply
+     */
+    private getMe = (request, reply) => {
+        this.db.getUserById(request.auth.credentials._id, (err, data) => {
+            if (err) {
+                return reply(this.boom.badRequest(err));
+            }
+            reply(data[0]);
+        })
+    };
+
+    /**
+     * Function to create User.
+     *
+     * @param request
+     * @param reply
+     */
+    private createUser = (request, reply) => {
+        this.db.getUserLogin(request.payload.mail).then((user) => {
+            return reply(this.boom.badRequest('mail already exists'));
+        }).catch((err) => {
+            if (err) {
+                return reply(this.boom.badRequest('something went wrong'));
+            }
+            this.bcrypt.genSalt(10, (err, salt) => {
+                this.bcrypt.hash(request.payload.password, salt, (err, hash) => {
+                    request.payload.password = hash;
+                    request.payload.strategy = 'default';
+                    // registration-verify information
+                    request.payload.uuid = this.uuid.v4();
+                    request.payload.verified = false;
+
+                    this.db.createUser(request.payload, (err, data) => {
+                        if (err) {
+                            return reply(this.boom.wrap(err, 400));
+                        }
+                        var userSessionData = {
+                            mail: request.payload.mail,
+                            _id: data.id
+                        };
+                        request.auth.session.set(userSessionData);
+                        reply(data);
+
+                        this.sendRegistrationMail(request.payload);
+                    });
+                });
+            });
+        });
+    };
+
+    /**
      * function to create mail information object and trigger mail.
      *
      * @param payload
@@ -455,5 +434,52 @@ class User {
             url: this.uri + '/users/confirm/' + payload.uuid
         };
         this.mailer.sendRegistrationMail(user);
+    }
+
+    /**
+     * update user in database.
+     *
+     * @param request
+     * @param reply
+     */
+    private updateUser = (request, reply) => {
+        this.db.updateUser(request.params.userid, request.payload._rev, request.payload.user, (err, data) => {
+            if (err) {
+                return reply(this.boom.wrap(err, 400));
+            }
+            reply(data);
+        });
+    };
+
+    /**
+     * Initialize schemas.
+     */
+    private initSchemas():void {
+        var user = this.joi.object().keys({
+            name: this.joi.string().required(),
+            surname: this.joi.string(),
+            picture: this.joi.optional(),
+            mail: this.joi.string().email().required(),
+            password: this.joi.string().required(),
+            type: this.joi.string().required().valid('user')
+        });
+
+        var putMethodElements = this.joi.object().keys({
+            _id: this.joi.string().required(),
+            _rev: this.joi.string().required()
+        });
+
+        this.userSchemaPOST = user;
+        this.userSchemaPUT = putMethodElements.concat(user);
+
+        this.fileSchema = this.joi.object({
+            hapi: {
+                headers: {
+                    'content-type': this.joi.string()
+                        .regex(this.regex.imageContentType)
+                        .required()
+                }
+            }
+        }).options({allowUnknown: true}).required();
     }
 }
