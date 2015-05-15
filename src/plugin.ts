@@ -12,6 +12,7 @@ class User {
     joi:any;
     userSchemaPOST:any;
     userSchemaPUT:any;
+    fileSchema:any;
     boom:any;
     bcrypt:any;
     gm:any;
@@ -52,6 +53,15 @@ class User {
         this.userSchemaPOST = user;
         this.userSchemaPUT = putMethodElements.concat(user);
 
+        this.fileSchema = this.joi.object({
+            hapi: {
+                headers: {
+                    'content-type': this.joi.string()
+                        .regex(this.regex.imageContentType)
+                        .required()
+                }
+            }
+        }).options({allowUnknown: true}).required();
     }
 
     register:IRegister = (server, options, next) => {
@@ -157,15 +167,7 @@ class User {
                     },
                     payload: {
                         // validate file type to be an image
-                        file: this.joi.object({
-                            hapi: {
-                                headers: {
-                                    'content-type': this.joi.string()
-                                        .regex(this.regex.imageContentType)
-                                        .required()
-                                }
-                            }
-                        }).options({allowUnknown: true}).required(),
+                        file: this.fileSchema,
                         // validate that a correct dimension object is emitted
                         width: this.joi.number().integer().required(),
                         height: this.joi.number().integer().required(),
