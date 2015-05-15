@@ -46,7 +46,7 @@
    surname: 'John',
    description: 'Ich bin Steffen Ich bin Steffen, Steffen wollt ich schon immer sein',
    "imageLocation": {
-     "picture": "/i/users/368f5b48e4f45213ed912dd1e30377df/profile.png", // "/i" will be transformed to /api/vX/ from ngnix
+     "picture": "/i/users/368f5b48e4f45213ed912dd1e30377df/profile.png",
      "thumbnail": "/i/users/368f5b48e4f45213ed912dd1e30377df/profile-thumb.png"
    },
    mail: 'john.doe@info.de',
@@ -60,9 +60,11 @@
  {
    "message": "ok",
    "imageLocation": {
-     "picture": "/i/users/368f5b48e4f45213ed912dd1e30377df/profile.png", // "/i" will be transformed to /api/vX/ from ngnix
+     "picture": "/i/users/368f5b48e4f45213ed912dd1e30377df/profile.png",
      "thumbnail": "/i/users/368f5b48e4f45213ed912dd1e30377df/profile-thumb.png"
    }
  }
 ```
+
+>  "/i" in the url will be transformed to /api/vX/ from nginx on the server side
 
