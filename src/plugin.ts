@@ -162,8 +162,7 @@ class User {
                 tags: ['api', 'user'],
                 validate: {
                     params: {
-                        userid: this.joi.string().
-                            required()
+                        userid: this.joi.string().required()
                     },
                     payload: {
                         // validate file type to be an image
@@ -394,22 +393,10 @@ class User {
         var thumbname = 'profile-thumb.' + ext;
 
         // crop it, scale it and return stream
-        var imageStream = this.gm(request.payload.file)
-            .crop(request.payload.width
-            , request.payload.height
-            , request.payload.xCoord
-            , request.payload.yCoord)
-            .resize(200, 200)
-            .stream();
+        var imageStream = this.crop(request, 200, 200);
 
         // crop it, scale it for thumbnail and return stream
-        var thumbnailStream = this.gm(request.payload.file)
-            .crop(request.payload.width
-            , request.payload.height
-            , request.payload.xCoord
-            , request.payload.yCoord)
-            .resize(120, 120)
-            .stream();
+        var thumbnailStream = this.crop(request, 120, 120);
 
 
         // "/i/" will be mapped to /api/vX/ from nginx
@@ -444,6 +431,16 @@ class User {
             .catch((err) => {
                 return reply(this.boom.badRequest(err));
             });
+    };
+
+    private crop = (request, X, Y) => {
+        return this.gm(request.payload.file)
+            .crop(request.payload.width
+            , request.payload.height
+            , request.payload.xCoord
+            , request.payload.yCoord)
+            .resize(X, Y)
+            .stream();
     };
 
     /**
