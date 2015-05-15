@@ -169,7 +169,7 @@ class User {
                         , request.payload.height
                         , request.payload.xCoord
                         , request.payload.yCoord)
-                        .resize(200,200)
+                        .resize(200, 200)
                         .stream();
 
                     // crop it, scale it for thumbnail and return stream
@@ -178,7 +178,7 @@ class User {
                         , request.payload.height
                         , request.payload.xCoord
                         , request.payload.yCoord)
-                        .resize(120,120)
+                        .resize(120, 120)
                         .stream();
 
 
@@ -198,10 +198,6 @@ class User {
                         });
                     }
 
-                    function replyError(err) {
-                        return reply(this.boom.badRequest(err));
-                    }
-
                     // perform all save actions
 
                     // save image and return promise
@@ -216,7 +212,7 @@ class User {
                         })
                         .then(replySuccess)
                         .catch((err) => {
-                            replyError(err)
+                            return reply(this.boom.badRequest(err));
                         });
 
                 },
@@ -281,7 +277,7 @@ class User {
                     this.db.getUserLogin(request.payload.mail).then((user) => {
                         return reply(this.boom.badRequest('mail already exists'));
                     }).catch((err) => {
-                        if(err) {
+                        if (err) {
                             return reply(this.boom.badRequest('something went wrong'));
                         }
                         this.bcrypt.genSalt(10, (err, salt) => {
