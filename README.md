@@ -54,11 +54,12 @@
 
  - Creating/Updating a profile picture
 ```
-{
-  
-"message": "ok",
-"url": "/users/368f5b48e4f45213ed912dd1e30377df/profile.png"
-
-}
+ {
+   "message": "ok",
+   "imageLocation": {
+     "picture": "/i/users/368f5b48e4f45213ed912dd1e30377df/profile.png", // "/i" will be transformed to /api/vX/ from ngnix
+     "thumbnail": "/i/users/368f5b48e4f45213ed912dd1e30377df/profile-thumb.png"
+   }
+ }
 ```
 
