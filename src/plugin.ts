@@ -414,19 +414,16 @@ class User {
         return 'register';
     }
 
+    /**
+     * function to create mail information object and trigger mail.
+     * @param payload
+     */
     private sendRegistrationMail(payload):void {
-
         var user = {
             name: payload.name,
             mail: payload.mail,
             url: this.uri + '/users/confirm/' + payload.uuid
         };
         this.mailer.sendRegistrationMail(user);
-        // TODO: send mail
-        // UUID:
-        // - view
-        // route GET /users/confirm/{uuid}
-
-
     }
 }
