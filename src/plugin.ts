@@ -396,6 +396,7 @@ class User {
                         if (err) {
                             return reply(this.boom.wrap(err, 400));
                         }
+                        request.auth.session.clear();
                         reply(data);
                     });
                 },
