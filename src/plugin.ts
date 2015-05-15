@@ -292,7 +292,8 @@ class User {
                             this.bcrypt.hash(request.payload.password, salt, (err, hash) => {
                                 request.payload.password = hash;
                                 request.payload.strategy = 'default';
-                                request.payload.uuid = ;
+                                request.payload.uuid = this.uuid.v4();
+                                request.payload.verified = false;
 
                                 this.db.createUser(request.payload, (err, data) => {
                                     if (err) {
@@ -305,7 +306,7 @@ class User {
                                     request.auth.session.set(userSessionData);
                                     reply(data);
 
-                                    this.sendRegistrationMail();
+                                    this.sendRegistrationMail(request.payload);
                                 });
                             });
                         });
@@ -410,7 +411,8 @@ class User {
         return 'register';
     }
 
-    private sendRegistrationMail():void {
+    private sendRegistrationMail(payload):void {
+
 
         // TODO: send mail
         // UUID:
