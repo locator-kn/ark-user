@@ -79,14 +79,7 @@ class User {
             method: 'GET',
             path: '/users',
             config: {
-                handler: (request, reply) => {
-                    this.db.getUsers((err, data) => {
-                        if (err) {
-                            return reply(this.boom.wrap(err, 400));
-                        }
-                        reply(data);
-                    });
-                },
+                handler: this.getUser,
                 description: 'Get all users',
                 tags: ['api', 'user']
 
@@ -98,14 +91,7 @@ class User {
             method: 'GET',
             path: '/users/{userid}',
             config: {
-                handler: (request, reply) => {
-                    this.db.getUserById(request.params.userid, (err, data) => {
-                        if (err) {
-                            return reply(this.boom.wrap(err, 400));
-                        }
-                        reply(data);
-                    });
-                },
+                handler: this.getUserById,
                 description: 'Get particular user by user id',
                 notes: 'sample call: /users/tiruprec',
                 tags: ['api', 'user'],
@@ -127,13 +113,7 @@ class User {
             config: {
                 // TODO: check auth
                 auth: false,
-                handler: (request, reply) => {
-                    // create file name
-                    var file = request.params.name + '.' + request.params.ext;
-
-                    // get file stream from database (no error handling, because there is none)
-                    reply(this.db.getPicture(request.params.userid, file));
-                },
+                handler: this.getPicture,
                 description: 'Get the preview picture of a ' +
                 'user by id',
                 notes: 'sample call: /users/1222123132/profile.jpg',
@@ -166,66 +146,7 @@ class User {
                     // TODO: evaluate real value
                     maxBytes: 1000000000000
                 },
-                handler: (request, reply) => {
-
-                    var ext = request.payload.file.hapi.headers['content-type']
-                        .match(this.regex.imageExtension);
-                    var filename = 'profile.' + ext;
-                    var thumbname = 'profile-thumb.' + ext;
-
-                    // crop it, scale it and return stream
-                    var imageStream = this.gm(request.payload.file)
-                        .crop(request.payload.width
-                        , request.payload.height
-                        , request.payload.xCoord
-                        , request.payload.yCoord)
-                        .resize(200, 200)
-                        .stream();
-
-                    // crop it, scale it for thumbnail and return stream
-                    var thumbnailStream = this.gm(request.payload.file)
-                        .crop(request.payload.width
-                        , request.payload.height
-                        , request.payload.xCoord
-                        , request.payload.yCoord)
-                        .resize(120, 120)
-                        .stream();
-
-
-                    // "/i/" will be mapped to /api/vX/ from nginx
-                    var url = '/i/users/' + request.params.userid + '/' + filename;
-                    var thumbURL = '/i/users/' + request.params.userid + '/' + thumbname;
-
-                    var imageLocation = {
-                        picture: url,
-                        thumbnail: thumbURL
-                    };
-
-                    function replySuccess() {
-                        reply({
-                            message: 'ok',
-                            imageLocation: imageLocation
-                        });
-                    }
-
-                    // perform all save actions
-
-                    // save image and return promise
-                    this.db.savePicture(request.params.userid, filename, imageStream)
-                        .then(() => {
-                            // save thumbnail and return promise
-                            return this.db.savePicture(request.params.userid, thumbname, thumbnailStream);
-                        })
-                        .then(() => {
-                            // update url fields in document
-                            return this.db.updateDocument(request.params.userid, {images: imageLocation});
-                        })
-                        .then(replySuccess)
-                        .catch((err) => {
-                            return reply(this.boom.badRequest(err));
-                        });
-
-                },
+                handler: this.savePicture,
                 description: 'Upload profile picture of a user',
                 notes: 'The picture will be streamed and attached to the document of this user',
                 tags: ['api', 'user'],
@@ -415,7 +336,117 @@ class User {
     }
 
     /**
+     * Handler function to get all user.
+     *
+     * @param request
+     * @param reply
+     */
+    getUser = (request, reply) => {
+        this.db.getUsers((err, data) => {
+            if (err) {
+                return reply(this.boom.wrap(err, 400));
+            }
+            reply(data);
+        });
+    };
+
+    /**
+     * Handler function to get user by id.
+     *
+     * @param request
+     * @param reply
+     */
+    getUserById = (request, reply) => {
+        this.db.getUserById(request.params.userid, (err, data) => {
+            if (err) {
+                return reply(this.boom.wrap(err, 400));
+            }
+            reply(data);
+        });
+    };
+
+    /**
+     * Get picture of user.
+     *
+     * @param request
+     * @param reply
+     */
+    getPicture = (request, reply) => {
+        // create file name
+        var file = request.params.name + '.' + request.params.ext;
+
+        // get file stream from database (no error handling, because there is none)
+        reply(this.db.getPicture(request.params.userid, file));
+    };
+
+    /**
+     * Function to save picture in database.
+     *
+     * @param request
+     * @param reply
+     */
+    savePicture = (request, reply) => {
+        var ext = request.payload.file.hapi.headers['content-type']
+            .match(this.regex.imageExtension);
+        var filename = 'profile.' + ext;
+        var thumbname = 'profile-thumb.' + ext;
+
+        // crop it, scale it and return stream
+        var imageStream = this.gm(request.payload.file)
+            .crop(request.payload.width
+            , request.payload.height
+            , request.payload.xCoord
+            , request.payload.yCoord)
+            .resize(200, 200)
+            .stream();
+
+        // crop it, scale it for thumbnail and return stream
+        var thumbnailStream = this.gm(request.payload.file)
+            .crop(request.payload.width
+            , request.payload.height
+            , request.payload.xCoord
+            , request.payload.yCoord)
+            .resize(120, 120)
+            .stream();
+
+
+        // "/i/" will be mapped to /api/vX/ from nginx
+        var url = '/i/users/' + request.params.userid + '/' + filename;
+        var thumbURL = '/i/users/' + request.params.userid + '/' + thumbname;
+
+        var imageLocation = {
+            picture: url,
+            thumbnail: thumbURL
+        };
+
+        function replySuccess() {
+            reply({
+                message: 'ok',
+                imageLocation: imageLocation
+            });
+        }
+
+        // perform all save actions
+
+        // save image and return promise
+        this.db.savePicture(request.params.userid, filename, imageStream)
+            .then(() => {
+                // save thumbnail and return promise
+                return this.db.savePicture(request.params.userid, thumbname, thumbnailStream);
+            })
+            .then(() => {
+                // update url fields in document
+                return this.db.updateDocument(request.params.userid, {images: imageLocation});
+            })
+            .then(replySuccess)
+            .catch((err) => {
+                return reply(this.boom.badRequest(err));
+            });
+    };
+
+    /**
      * function to create mail information object and trigger mail.
+     *
      * @param payload
      */
     private sendRegistrationMail(payload):void {
