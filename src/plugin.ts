@@ -284,6 +284,7 @@ class User {
                             this.bcrypt.hash(request.payload.password, salt, (err, hash) => {
                                 request.payload.password = hash;
                                 request.payload.strategy = 'default';
+                                // TODO: set url to default profile picture
                                 this.db.createUser(request.payload, (err, data) => {
                                     if (err) {
                                         return reply(this.boom.wrap(err, 400));
