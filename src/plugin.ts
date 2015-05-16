@@ -48,7 +48,7 @@ class User {
             next();
         });
 
-        this.uri = server.realm.modifiers.route.prefix + server.info.uri;
+        this.uri =  server.info.uri + server.realm.modifiers.route.prefix;
 
         this._register(server, options);
         next();
