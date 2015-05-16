@@ -208,14 +208,7 @@ class User {
             method: 'PUT',
             path: '/users/{userid}/password',
             config: {
-                handler: (request, reply) => {
-                    this.db.updateUserPassword(request.params.userid, request.payload.password, (err, data) => {
-                        if (err) {
-                            return reply(this.boom.wrap(err, 400));
-                        }
-                        reply(data);
-                    });
-                },
+                handler: this.updateUserPassword,
                 description: 'update password of user by id',
                 notes: 'Important: add password as payload',
                 tags: ['api', 'user'],
@@ -238,15 +231,7 @@ class User {
             method: 'DELETE',
             path: '/users/{userid}',
             config: {
-                handler: (request, reply) => {
-                    this.db.deleteUserById(request.params.userid, (err, data) => {
-                        if (err) {
-                            return reply(this.boom.wrap(err, 400));
-                        }
-                        request.auth.session.clear();
-                        reply(data);
-                    });
-                },
+                handler: this.deleteUser,
                 description: 'delete a particular trip',
                 tags: ['api', 'trip'],
                 validate: {
@@ -447,6 +432,36 @@ class User {
             if (err) {
                 return reply(this.boom.wrap(err, 400));
             }
+            reply(data);
+        });
+    };
+
+    /**
+     * Update user password of specific user.
+     *
+     * @param request
+     * @param reply
+     */
+    private updateUserPassword = (request, reply) => {
+        this.db.updateUserPassword(request.params.userid, request.payload.password, (err, data) => {
+            if (err) {
+                return reply(this.boom.wrap(err, 400));
+            }
+            reply(data);
+        });
+    };
+
+    /**
+     * Delete user by user id.
+     * @param request
+     * @param reply
+     */
+    private deleteUser = (request, reply) => {
+        this.db.deleteUserById(request.params.userid, (err, data) => {
+            if (err) {
+                return reply(this.boom.wrap(err, 400));
+            }
+            request.auth.session.clear();
             reply(data);
         });
     };
