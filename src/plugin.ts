@@ -364,7 +364,7 @@ class User {
             if (err) {
                 return reply(this.boom.badRequest(err));
             }
-            reply(data[0]);
+            reply(data);
         })
     };
 
