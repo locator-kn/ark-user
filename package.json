@@ -1,6 +1,6 @@
 {
   "name": "ark-user",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Plugin for handling all routes, which relate to a user.",
   "main": "index.js",
   "scripts": {
