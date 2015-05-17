@@ -48,8 +48,6 @@ class User {
             next();
         });
 
-        this.uri =  server.info.uri + server.realm.modifiers.route.prefix;
-
         this._register(server, options);
         next();
     };
@@ -416,7 +414,7 @@ class User {
         var user = {
             name: payload.name,
             mail: payload.mail,
-            url: this.uri + '/users/confirm/' + payload.uuid
+            uuid: payload.uuid
         };
         this.mailer.sendRegistrationMail(user);
     }
