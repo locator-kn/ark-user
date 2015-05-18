@@ -312,7 +312,7 @@ class User {
         var thumbURL = '/i/users/' + request.params.userid + '/' + thumbname;
 
         var imageLocation = {
-            picture: url,
+            original: url,
             thumbnail: thumbURL
         };
 
@@ -333,7 +333,7 @@ class User {
             })
             .then(() => {
                 // update url fields in document
-                return this.db.updateDocument(request.params.userid, {images: imageLocation});
+                return this.db.updateDocument(request.params.userid, {picture: imageLocation});
             })
             .then(replySuccess)
             .catch((err) => {
@@ -386,6 +386,13 @@ class User {
                     // registration-verify information
                     request.payload.uuid = this.uuid.v4();
                     request.payload.verified = false;
+
+                    // dummy picture
+                    request.payload.picture = {
+                        original: "https://achvr-assets.global.ssl.fastly.net/assets/profile_placeholder_square150-dd15a533084a90a7e8711e90228fcf60.png",
+                        thumbnail: "https://achvr-assets.global.ssl.fastly.net/assets/profile_placeholder_square150-dd15a533084a90a7e8711e90228fcf60.png"
+                    };
+
 
                     this.db.createUser(request.payload, (err, data) => {
                         if (err) {
@@ -470,8 +477,7 @@ class User {
     private initSchemas():void {
         var user = this.joi.object().keys({
             name: this.joi.string().required(),
-            surname: this.joi.string(),
-            picture: this.joi.optional(),
+            surname: this.joi.string().optional(),
             mail: this.joi.string().email().required(),
             password: this.joi.string().required(),
             type: this.joi.string().required().valid('user')
