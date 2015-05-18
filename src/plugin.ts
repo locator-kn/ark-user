@@ -470,8 +470,7 @@ class User {
     private initSchemas():void {
         var user = this.joi.object().keys({
             name: this.joi.string().required(),
-            surname: this.joi.string(),
-            picture: this.joi.optional(),
+            surname: this.joi.string().optional(),
             mail: this.joi.string().email().required(),
             password: this.joi.string().required(),
             type: this.joi.string().required().valid('user')
