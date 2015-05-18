@@ -387,6 +387,13 @@ class User {
                     request.payload.uuid = this.uuid.v4();
                     request.payload.verified = false;
 
+                    // dummy picture
+                    request.payload.picture = {
+                        original: "https://achvr-assets.global.ssl.fastly.net/assets/profile_placeholder_square150-dd15a533084a90a7e8711e90228fcf60.png",
+                        thumbnail: "https://achvr-assets.global.ssl.fastly.net/assets/profile_placeholder_square150-dd15a533084a90a7e8711e90228fcf60.png"
+                    };
+
+
                     this.db.createUser(request.payload, (err, data) => {
                         if (err) {
                             return reply(this.boom.wrap(err, 400));
