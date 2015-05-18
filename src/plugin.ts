@@ -312,7 +312,7 @@ class User {
         var thumbURL = '/i/users/' + request.params.userid + '/' + thumbname;
 
         var imageLocation = {
-            picture: url,
+            original: url,
             thumbnail: thumbURL
         };
 
@@ -333,7 +333,7 @@ class User {
             })
             .then(() => {
                 // update url fields in document
-                return this.db.updateDocument(request.params.userid, {images: imageLocation});
+                return this.db.updateDocument(request.params.userid, {picture: imageLocation});
             })
             .then(replySuccess)
             .catch((err) => {
