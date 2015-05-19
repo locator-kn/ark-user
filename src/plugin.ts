@@ -297,8 +297,14 @@ class User {
     savePicture = (request, reply) => {
         var ext = request.payload.file.hapi.headers['content-type']
             .match(this.regex.imageExtension);
+
         var filename = 'profile.' + ext;
         var thumbname = 'profile-thumb.' + ext;
+
+        var attachmentData = {
+            'Content-Type': request.payload.file.hapi.headers['content-type'],
+            name: filename
+        };
 
         // crop it, scale it and return stream
         var imageStream = this.crop(request, 200, 200);
@@ -326,10 +332,11 @@ class User {
         // perform all save actions
 
         // save image and return promise
-        this.db.savePicture(request.params.userid, filename, imageStream)
+        this.db.savePicture(request.params.userid, attachmentData, imageStream)
             .then(() => {
                 // save thumbnail and return promise
-                return this.db.savePicture(request.params.userid, thumbname, thumbnailStream);
+                attachmentData.name = thumbname;
+                return this.db.savePicture(request.params.userid, attachmentData, thumbnailStream);
             })
             .then(() => {
                 // update url fields in document
