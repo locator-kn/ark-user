@@ -440,7 +440,7 @@ class User {
      * @param reply
      */
     private updateUser = (request, reply) => {
-        this.db.updateUser(request.params.userid, request.payload._rev, request.payload.user, (err, data) => {
+        this.db.updateUser(request.params.userid, request.payload.user, (err, data) => {
             if (err) {
                 return reply(this.boom.wrap(err, 400));
             }
