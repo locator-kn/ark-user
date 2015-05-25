@@ -29,7 +29,7 @@ class User {
         this.joi = require('joi');
         this.boom = require('boom');
         this.bcrypt = require('bcrypt');
-        this.gm = require('gm');
+        this.gm = require('gm').subClass({imageMagick: true});
         this.regex = require('locators-regex');
         this.uuid = require('node-uuid');
         this.initSchemas();
@@ -123,7 +123,7 @@ class User {
                     parse: true,
                     allow: 'multipart/form-data',
                     // TODO: evaluate real value
-                    maxBytes: 1000000000000
+                    maxBytes: 1048576 * 6 // 6MB
                 },
                 handler: this.savePicture,
                 description: 'Upload profile picture of a user',
