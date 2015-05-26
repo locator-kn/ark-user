@@ -20,6 +20,7 @@ class User {
     mailer:any;
     uuid:any;
     uri:string;
+    imageUtil:any;
 
     constructor() {
         this.register.attributes = {
@@ -32,6 +33,7 @@ class User {
         this.gm = require('gm').subClass({imageMagick: true});
         this.regex = require('locators-regex');
         this.uuid = require('node-uuid');
+        this.imageUtil = require('locator-image-utility');
         this.initSchemas();
     }
 
@@ -104,7 +106,7 @@ class User {
                         name: this.joi.string()
                             .required(),
                         ext: this.joi.string()
-                            .required().regex(this.regex.imageExtension)
+                            .required().regex(this.imageUtil.regex.imageExtension)
                     }
                 }
 
@@ -133,16 +135,7 @@ class User {
                     params: {
                         userid: this.joi.string().required()
                     },
-                    payload: {
-                        // validate file type to be an image
-                        file: this.fileSchema,
-                        // validate that a correct dimension object is emitted
-                        width: this.joi.number().integer().required(),
-                        height: this.joi.number().integer().required(),
-                        xCoord: this.joi.number().integer().required(),
-                        yCoord: this.joi.number().integer().required()
-
-                    }
+                    payload: this.imageUtil.validation.basicImageSchema
                 }
             }
         });
@@ -294,68 +287,43 @@ class User {
      * @param request
      * @param reply
      */
-    savePicture = (request, reply) => {
-        var ext = request.payload.file.hapi.headers['content-type']
-            .match(this.regex.imageExtension);
+    private savePicture = (request, reply) => {
 
-        var filename = 'profile.' + ext;
-        var thumbname = 'profile-thumb.' + ext;
+        var imageProcessor = this.imageUtil.image.processor(request);
 
-        var attachmentData = {
-            'Content-Type': request.payload.file.hapi.headers['content-type'],
-            name: filename
-        };
+        var file = imageProcessor.createFileInformation('profile');
+
+        var attachmentData = imageProcessor.getAttachmentData(file.filename);
 
         // crop it, scale it and return stream
-        var imageStream = this.crop(request, 200, 200);
+        var imageStream = imageProcessor.createCroppedStream(200, 200);
 
         // crop it, scale it for thumbnail and return stream
-        var thumbnailStream = this.crop(request, 120, 120);
-
-
-        // "/i/" will be mapped to /api/vX/ from nginx
-        var url = '/i/users/' + request.params.userid + '/' + filename;
-        var thumbURL = '/i/users/' + request.params.userid + '/' + thumbname;
-
-        var imageLocation = {
-            original: url,
-            thumbnail: thumbURL
-        };
-
-        function replySuccess() {
-            reply({
-                message: 'ok',
-                imageLocation: imageLocation
-            });
-        }
-
-        // perform all save actions
+        var thumbnailStream = imageProcessor.createCroppedStream(120, 120);
 
         // save image and return promise
         this.db.savePicture(request.params.userid, attachmentData, imageStream)
             .then(() => {
                 // save thumbnail and return promise
-                attachmentData.name = thumbname;
+                attachmentData.name = file.thumbnailName;
                 return this.db.savePicture(request.params.userid, attachmentData, thumbnailStream);
-            })
-            .then(() => {
+            }).then(() => {
                 // update url fields in document
-                return this.db.updateDocument(request.params.userid, {picture: imageLocation});
-            })
-            .then(replySuccess)
-            .catch((err) => {
+                return this.db.updateDocument(request.params.userid, {picture: file.imageLocation});
+            }).then((value) => {
+                this.replySuccess(reply, file.imageLocation, value)
+            }).catch((err) => {
                 return reply(this.boom.badRequest(err));
             });
     };
 
-    private crop = (request, X, Y) => {
-        return this.gm(request.payload.file)
-            .crop(request.payload.width
-            , request.payload.height
-            , request.payload.xCoord
-            , request.payload.yCoord)
-            .resize(X, Y)
-            .stream();
+    private replySuccess = (reply, imageLocation, returnValue)=> {
+        reply({
+            message: 'ok',
+            imageLocation: imageLocation,
+            id: returnValue.id,
+            rev: returnValue.rev
+        });
     };
 
     /**
@@ -497,15 +465,5 @@ class User {
 
         this.userSchemaPOST = user;
         this.userSchemaPUT = putMethodElements.concat(user);
-
-        this.fileSchema = this.joi.object({
-            hapi: {
-                headers: {
-                    'content-type': this.joi.string()
-                        .regex(this.regex.imageContentType)
-                        .required()
-                }
-            }
-        }).options({allowUnknown: true}).required();
     }
 }
