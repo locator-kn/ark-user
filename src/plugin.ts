@@ -12,14 +12,11 @@ class User {
     joi:any;
     userSchemaPOST:any;
     userSchemaPUT:any;
-    fileSchema:any;
     boom:any;
     bcrypt:any;
     gm:any;
-    regex:any;
     mailer:any;
     uuid:any;
-    uri:string;
     imageUtil:any;
 
     constructor() {
@@ -31,7 +28,6 @@ class User {
         this.boom = require('boom');
         this.bcrypt = require('bcrypt');
         this.gm = require('gm').subClass({imageMagick: true});
-        this.regex = require('locators-regex');
         this.uuid = require('node-uuid');
         this.imageUtil = require('locator-image-utility');
         this.initSchemas();
