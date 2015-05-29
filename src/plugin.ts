@@ -10,8 +10,7 @@ export default
 class User {
     db:any;
     joi:any;
-    userSchemaPOST:any;
-    userSchemaPUT:any;
+    userSchema:any;
     boom:any;
     bcrypt:any;
     gm:any;
@@ -159,7 +158,7 @@ class User {
                 notes: '_id is the mail address of the user',
                 tags: ['api', 'user'],
                 validate: {
-                    payload: this.userSchemaPOST
+                    payload: this.userSchema
                         .required()
                         .description('User JSON object')
                 }
@@ -181,7 +180,7 @@ class User {
                             .required()
                             .description('User Id')
                     },
-                    payload: this.userSchemaPUT
+                    payload: this.userSchema
                         .required()
                         .description('User JSON object WITH _rev')
                 }
@@ -364,7 +363,8 @@ class User {
                         thumbnail: "https://achvr-assets.global.ssl.fastly.net/assets/profile_placeholder_square150-dd15a533084a90a7e8711e90228fcf60.png"
                     };
 
-
+                    // create the actual user
+                    request.payload.type = 'user';
                     this.db.createUser(request.payload, (err, data) => {
                         if (err) {
                             return reply(this.boom.wrap(err, 400));
@@ -404,7 +404,7 @@ class User {
      * @param reply
      */
     private updateUser = (request, reply) => {
-        this.db.updateUser(request.params.userid, request.payload._rev, request.payload.user, (err, data) => {
+        this.db.updateUser(request.params.userid, request.payload.user, (err, data) => {
             if (err) {
                 return reply(this.boom.wrap(err, 400));
             }
@@ -446,20 +446,11 @@ class User {
      * Initialize schemas.
      */
     private initSchemas():void {
-        var user = this.joi.object().keys({
+        this.userSchema = this.joi.object().keys({
             name: this.joi.string().required(),
             surname: this.joi.string().optional(),
             mail: this.joi.string().email().required(),
-            password: this.joi.string().required(),
-            type: this.joi.string().required().valid('user')
+            password: this.joi.string().required()
         });
-
-        var putMethodElements = this.joi.object().keys({
-            _id: this.joi.string().required(),
-            _rev: this.joi.string().required()
-        });
-
-        this.userSchemaPOST = user;
-        this.userSchemaPUT = putMethodElements.concat(user);
     }
 }
