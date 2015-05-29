@@ -214,6 +214,30 @@ class User {
             }
         });
 
+        // route to update user mail
+        server.route({
+            method: 'PUT',
+            path: '/users/{userid}/mail',
+            config: {
+                handler: this.updateUserMail,
+                description: 'update mail of user by id',
+                notes: 'A new confirmation mail will be send',
+                tags: ['api', 'user'],
+                validate: {
+                    params: {
+                        userid: this.joi.string()
+                            .required()
+                            .description('User Id')
+                    },
+                    payload: this.joi.object().keys({
+                        // TODO: verify mail pattern?
+                        mail: this.joi.string().required()
+                    })
+                }
+
+            }
+        });
+
         // delete a particular user
         server.route({
             method: 'DELETE',
@@ -360,6 +384,7 @@ class User {
                     request.payload.verified = false;
 
                     // dummy picture
+                    // TODO: retrieve picture from own database
                     request.payload.picture = {
                         original: "https://achvr-assets.global.ssl.fastly.net/assets/profile_placeholder_square150-dd15a533084a90a7e8711e90228fcf60.png",
                         thumbnail: "https://achvr-assets.global.ssl.fastly.net/assets/profile_placeholder_square150-dd15a533084a90a7e8711e90228fcf60.png"
@@ -422,6 +447,22 @@ class User {
      */
     private updateUserPassword = (request, reply) => {
         this.db.updateUserPassword(request.params.userid, request.payload.password, (err, data) => {
+            if (err) {
+                return reply(this.boom.wrap(err, 400));
+            }
+            reply(data);
+        });
+    };
+
+    /**
+     * Update user mail of specific user.
+     *
+     * @param request
+     * @param reply
+     */
+    private updateUserMail = (request, reply) => {
+        //TODO: send mail
+        this.db.updateUserPassword(request.params.userid, request.payload.mail, (err, data) => {
             if (err) {
                 return reply(this.boom.wrap(err, 400));
             }
