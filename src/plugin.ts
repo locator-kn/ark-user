@@ -491,7 +491,7 @@ class User {
      * @param reply
      */
     private deleteUser = (request, reply) => {
-        if (request.params.userid != request.auth.credentials._id) {
+        if (request.params.userid !== request.auth.credentials._id) {
             // unauthorized to delete other user
             return reply(this.boom.wrap(401));
         }
