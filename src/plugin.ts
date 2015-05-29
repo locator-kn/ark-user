@@ -55,7 +55,7 @@ class User {
             method: 'GET',
             path: '/users',
             config: {
-                handler: this.getUser,
+                handler: this.getUsers,
                 description: 'Get all users',
                 tags: ['api', 'user']
 
@@ -69,13 +69,13 @@ class User {
             config: {
                 handler: this.getUserById,
                 description: 'Get particular user by user id',
-                notes: 'sample call: /users/tiruprec',
+                notes: 'sample call: /users/124239845725',
                 tags: ['api', 'user'],
                 validate: {
                     params: {
                         userid: this.joi.string()
                             .required()
-                            .description('User id from "LDAP"')
+                            .description('User id from database')
                     }
                 }
 
@@ -83,6 +83,7 @@ class User {
         });
 
         // get picture of a user
+        // TODO: redirect to special route which handles all pictures
         server.route({
             method: 'GET',
             path: '/users/{userid}/{name}.{ext}',
@@ -172,7 +173,8 @@ class User {
             config: {
                 handler: this.updateUser,
                 description: 'Update user information',
-                notes: 'It is important to add the "_rev" property!',
+                notes: 'Update one or more properties of the user. If you want to change the password,' +
+                'use PUT /users/:userid/password',
                 tags: ['api', 'user'],
                 validate: {
                     params: {
@@ -182,7 +184,7 @@ class User {
                     },
                     payload: this.userSchema
                         .required()
-                        .description('User JSON object WITH _rev')
+                        .description('User JSON object')
                 }
 
             }
@@ -238,7 +240,7 @@ class User {
      * @param request
      * @param reply
      */
-    getUser = (request, reply) => {
+    getUsers = (request, reply) => {
         this.db.getUsers((err, data) => {
             if (err) {
                 return reply(this.boom.wrap(err, 400));
