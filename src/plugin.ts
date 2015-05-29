@@ -464,11 +464,16 @@ class User {
      * @param reply
      */
     private updateUserMail = (request, reply) => {
-        //TODO: send verify  mail and keep old mail address, till new mail is verified
-        this.db.updateUserMail(request.params.userid, request.payload.mail, (err, data) => {
+        var newMail = {
+            mail: request.payload.mail,
+            verified: false
+        };
+
+        this.db.updateUserMail(request.params.userid, newMail, (err, data) => {
             if (err) {
                 return reply(this.boom.wrap(err, 400));
             }
+            //TODO: send verify  mail and keep old mail address, till new mail is verified
             reply(data);
         });
     };
