@@ -386,17 +386,10 @@ class User {
                         strategy: 'default',
                         uuid: this.uuid.v4(),
                         verified: false,
-
-                        // TODO: retrieve picture from own database
-                        // dummy picture
-                        picture: {
-                            original: "https://achvr-assets.global.ssl.fastly.net/assets/profile_placeholder_square150-dd15a533084a90a7e8711e90228fcf60.png",
-                            thumbnail: "https://achvr-assets.global.ssl.fastly.net/assets/profile_placeholder_square150-dd15a533084a90a7e8711e90228fcf60.png"
-                        },
                         type: 'user'
                     };
 
-                    // create the actual user
+                    // create the actual user, merged with the payload
                     this.db.createUser(this.hoek.merge(request.payload, newUser), (err, data) => {
                         if (err) {
                             return reply(this.boom.wrap(err, 400));
