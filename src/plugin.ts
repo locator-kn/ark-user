@@ -18,6 +18,7 @@ class User {
     mailer:any;
     uuid:any;
     imageUtil:any;
+    hoek:any;
 
     constructor() {
         this.register.attributes = {
@@ -30,6 +31,7 @@ class User {
         this.gm = require('gm').subClass({imageMagick: true});
         this.uuid = require('node-uuid');
         this.imageUtil = require('locator-image-utility');
+        this.hoek = require('hoek');
         this.initSchemas();
     }
 
@@ -222,7 +224,7 @@ class User {
             config: {
                 handler: this.updateUserMail,
                 description: 'update mail of user by id',
-                notes: 'A new confirmation mail will be send',
+                notes: 'A new verify mail will be send',
                 tags: ['api', 'user'],
                 validate: {
                     params: {
@@ -370,6 +372,7 @@ class User {
      * @param reply
      */
     private createUser = (request, reply) => {
+        // TODO: am I logged in? Can I create a new user? I don't think so
         this.db.getUserLogin(request.payload.mail).then((user) => {
             return reply(this.boom.badRequest('mail already exists'));
         }).catch((err) => {
@@ -378,24 +381,28 @@ class User {
             }
             this.bcrypt.genSalt(10, (err, salt) => {
                 this.bcrypt.hash(request.payload.password, salt, (err, hash) => {
-                    request.payload.password = hash;
-                    request.payload.strategy = 'default';
-                    // registration-verify information
-                    request.payload.uuid = this.uuid.v4();
-                    request.payload.verified = false;
 
-                    // dummy picture
-                    // TODO: retrieve picture from own database
-                    request.payload.picture = {
-                        original: "https://achvr-assets.global.ssl.fastly.net/assets/profile_placeholder_square150-dd15a533084a90a7e8711e90228fcf60.png",
-                        thumbnail: "https://achvr-assets.global.ssl.fastly.net/assets/profile_placeholder_square150-dd15a533084a90a7e8711e90228fcf60.png"
+                    var newUser = {
+                        password: hash,
+                        strategy: 'default',
+                        uuid: this.uuid.v4(),
+                        verified: false,
+
+                        // TODO: retrieve picture from own database
+                        // dummy picture
+                        picture: {
+                            original: "https://achvr-assets.global.ssl.fastly.net/assets/profile_placeholder_square150-dd15a533084a90a7e8711e90228fcf60.png",
+                            thumbnail: "https://achvr-assets.global.ssl.fastly.net/assets/profile_placeholder_square150-dd15a533084a90a7e8711e90228fcf60.png"
+                        },
+                        type: 'user',
+                        mail: {
+                            address: request.payload.mail,
+                            verified: false
+                        }
                     };
 
-                    // set type
-                    request.payload.type = 'user';
-
                     // create the actual user
-                    this.db.createUser(request.payload, (err, data) => {
+                    this.db.createUser(this.hoek.merge(request.payload, newUser), (err, data) => {
                         if (err) {
                             return reply(this.boom.wrap(err, 400));
                         }
