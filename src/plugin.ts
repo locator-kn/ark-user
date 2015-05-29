@@ -10,7 +10,8 @@ export default
 class User {
     db:any;
     joi:any;
-    userSchema:any;
+    userSchemaPOST:any;
+    userSchemaPUT:any;
     boom:any;
     bcrypt:any;
     gm:any;
@@ -159,7 +160,7 @@ class User {
                 notes: '_id is the mail address of the user',
                 tags: ['api', 'user'],
                 validate: {
-                    payload: this.userSchema
+                    payload: this.userSchemaPOST
                         .required()
                         .description('User JSON object')
                 }
@@ -173,8 +174,8 @@ class User {
             config: {
                 handler: this.updateUser,
                 description: 'Update user information',
-                notes: 'Update one or more properties of the user. If you want to change the password,' +
-                'use PUT /users/:userid/password',
+                notes: 'Update one or more properties of the user. If you want to change the password or mail,' +
+                'use PUT /users/:userid/[password or mail]',
                 tags: ['api', 'user'],
                 validate: {
                     params: {
@@ -182,7 +183,7 @@ class User {
                             .required()
                             .description('User Id')
                     },
-                    payload: this.userSchema
+                    payload: this.userSchemaPUT
                         .required()
                         .description('User JSON object')
                 }
@@ -489,11 +490,16 @@ class User {
      * Initialize schemas.
      */
     private initSchemas():void {
-        this.userSchema = this.joi.object().keys({
+        this.userSchemaPOST = this.joi.object().keys({
             name: this.joi.string().required(),
             surname: this.joi.string().optional(),
             mail: this.joi.string().email().required(),
             password: this.joi.string().required()
         });
+
+        this.userSchemaPUT = this.joi.object().keys({
+            name: this.joi.string().optional(),
+            surname: this.joi.string().optional()
+        })
     }
 }
