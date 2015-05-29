@@ -233,8 +233,7 @@ class User {
                             .description('User Id')
                     },
                     payload: this.joi.object().keys({
-                        // TODO: verify mail pattern?
-                        mail: this.joi.string().required()
+                        mail: this.joi.string().required().email()
                     })
                 }
 
@@ -510,7 +509,7 @@ class User {
     private initSchemas():void {
         this.userSchemaPOST = this.joi.object().keys({
             name: this.joi.string().required(),
-            surname: this.joi.string().optional(),
+            surname: this.joi.string().optional().email(),
             mail: this.joi.string().email().required(),
             password: this.joi.string().required()
         });
