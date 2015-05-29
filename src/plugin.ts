@@ -391,8 +391,10 @@ class User {
                         thumbnail: "https://achvr-assets.global.ssl.fastly.net/assets/profile_placeholder_square150-dd15a533084a90a7e8711e90228fcf60.png"
                     };
 
-                    // create the actual user
+                    // set type
                     request.payload.type = 'user';
+
+                    // create the actual user
                     this.db.createUser(request.payload, (err, data) => {
                         if (err) {
                             return reply(this.boom.wrap(err, 400));
@@ -462,8 +464,8 @@ class User {
      * @param reply
      */
     private updateUserMail = (request, reply) => {
-        //TODO: send mail
-        this.db.updateUserPassword(request.params.userid, request.payload.mail, (err, data) => {
+        //TODO: send verify  mail and keep old mail address, till new mail is verified
+        this.db.updateUserMail(request.params.userid, request.payload.mail, (err, data) => {
             if (err) {
                 return reply(this.boom.wrap(err, 400));
             }
@@ -497,6 +499,7 @@ class User {
             password: this.joi.string().required()
         });
 
+        // TODO: extend schema. (e.g. description text)
         this.userSchemaPUT = this.joi.object().keys({
             name: this.joi.string().optional(),
             surname: this.joi.string().optional()
