@@ -394,11 +394,7 @@ class User {
                             original: "https://achvr-assets.global.ssl.fastly.net/assets/profile_placeholder_square150-dd15a533084a90a7e8711e90228fcf60.png",
                             thumbnail: "https://achvr-assets.global.ssl.fastly.net/assets/profile_placeholder_square150-dd15a533084a90a7e8711e90228fcf60.png"
                         },
-                        type: 'user',
-                        mail: {
-                            address: request.payload.mail,
-                            verified: false
-                        }
+                        type: 'user'
                     };
 
                     // create the actual user
@@ -471,6 +467,10 @@ class User {
      * @param reply
      */
     private updateUserMail = (request, reply) => {
+
+        // not implemented yet
+        return reply(this.boom.wrap('not implemented yet',501));
+
         var newMail = {
             mail: request.payload.mail,
             verified: false
