@@ -31,7 +31,6 @@
   "dependencies": {
     "bcrypt": "^0.8.2",
     "boom": "^2.7.0",
-    "gm": "^1.17.0",
     "hoek": "^2.14.0",
     "joi": "^6.1.1",
     "locator-image-utility": "^1.1.2",

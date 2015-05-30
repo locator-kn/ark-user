@@ -14,7 +14,6 @@ class User {
     userSchemaPUT:any;
     boom:any;
     bcrypt:any;
-    gm:any;
     mailer:any;
     uuid:any;
     imageUtil:any;
@@ -28,7 +27,6 @@ class User {
         this.joi = require('joi');
         this.boom = require('boom');
         this.bcrypt = require('bcrypt');
-        this.gm = require('gm').subClass({imageMagick: true});
         this.uuid = require('node-uuid');
         this.imageUtil = require('locator-image-utility');
         this.hoek = require('hoek');
@@ -91,11 +89,9 @@ class User {
             method: 'GET',
             path: '/users/{userid}/{name}.{ext}',
             config: {
-                // TODO: check auth
                 auth: false,
                 handler: this.getPicture,
-                description: 'Get the preview picture of a ' +
-                'user by id',
+                description: 'Get the preview picture of a user by id',
                 notes: 'sample call: /users/1222123132/profile.jpg',
                 tags: ['api', 'user'],
                 validate: {
@@ -166,12 +162,12 @@ class User {
         // route to update user information
         server.route({
             method: 'PUT',
-            path: '/users/{userid}',
+            path: '/users/my/profile',
             config: {
                 handler: this.updateUser,
                 description: 'Update user information',
                 notes: 'Update one or more properties of the user. If you want to change the password or mail,' +
-                'use PUT /users/:userid/[password or mail]',
+                'use PUT /users/my/[password or mail]',
                 tags: ['api', 'user'],
                 validate: {
                     params: {
@@ -232,17 +228,11 @@ class User {
         // delete a particular user
         server.route({
             method: 'DELETE',
-            path: '/users/{userid}',
+            path: '/users/me',
             config: {
                 handler: this.deleteUser,
-                description: 'delete a particular trip',
-                tags: ['api', 'trip'],
-                validate: {
-                    params: {
-                        userid: this.joi.string()
-                            .required()
-                    }
-                }
+                description: 'delete user "me" ',
+                tags: ['api', 'trip']
             }
         });
 
@@ -256,6 +246,7 @@ class User {
      * @param reply
      */
     getUsers = (request, reply) => {
+        //TODO: limit number of result
         this.db.getUsers((err, data) => {
             if (err) {
                 return reply(this.boom.wrap(err, 400));
@@ -420,7 +411,7 @@ class User {
      * @param reply
      */
     private updateUser = (request, reply) => {
-        this.db.updateUser(request.params.userid, request.payload.user, (err, data) => {
+        this.db.updateUser(request.auth.credentials._id, request.payload.user, (err, data) => {
             if (err) {
                 return reply(this.boom.wrap(err, 400));
             }
@@ -474,11 +465,7 @@ class User {
      * @param reply
      */
     private deleteUser = (request, reply) => {
-        if (request.params.userid !== request.auth.credentials._id) {
-            // unauthorized to delete other user
-            return reply(this.boom.wrap(401));
-        }
-        this.db.deleteUserById(request.params.userid, (err, data) => {
+        this.db.deleteUserById(request.auth.credentials._id, (err, data) => {
             if (err) {
                 return reply(this.boom.wrap(err, 400));
             }
