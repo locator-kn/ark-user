@@ -14,10 +14,10 @@ class User {
     userSchemaPUT:any;
     boom:any;
     bcrypt:any;
-    gm:any;
     mailer:any;
     uuid:any;
     imageUtil:any;
+    hoek:any;
 
     constructor() {
         this.register.attributes = {
@@ -27,9 +27,9 @@ class User {
         this.joi = require('joi');
         this.boom = require('boom');
         this.bcrypt = require('bcrypt');
-        this.gm = require('gm').subClass({imageMagick: true});
         this.uuid = require('node-uuid');
         this.imageUtil = require('locator-image-utility');
+        this.hoek = require('hoek');
         this.initSchemas();
     }
 
@@ -56,7 +56,7 @@ class User {
             method: 'GET',
             path: '/users',
             config: {
-                handler: this.getUser,
+                handler: this.getUsers,
                 description: 'Get all users',
                 tags: ['api', 'user']
 
@@ -70,13 +70,13 @@ class User {
             config: {
                 handler: this.getUserById,
                 description: 'Get particular user by user id',
-                notes: 'sample call: /users/tiruprec',
+                notes: 'sample call: /users/124239845725',
                 tags: ['api', 'user'],
                 validate: {
                     params: {
                         userid: this.joi.string()
                             .required()
-                            .description('User id from "LDAP"')
+                            .description('User id from database')
                     }
                 }
 
@@ -84,15 +84,14 @@ class User {
         });
 
         // get picture of a user
+        // TODO: redirect to special route which handles all pictures
         server.route({
             method: 'GET',
             path: '/users/{userid}/{name}.{ext}',
             config: {
-                // TODO: check auth
                 auth: false,
                 handler: this.getPicture,
-                description: 'Get the preview picture of a ' +
-                'user by id',
+                description: 'Get the preview picture of a user by id',
                 notes: 'sample call: /users/1222123132/profile.jpg',
                 tags: ['api', 'user'],
                 validate: {
@@ -112,25 +111,19 @@ class User {
         // Upload a profile picture
         server.route({
             method: ['POST', 'PUT'],
-            path: '/users/{userid}/picture', // 'users/my/picture/'
+            path: '/users/my/picture',
             config: {
-                // TODO: check auth
-                auth: false,
                 payload: {
                     output: 'stream',
                     parse: true,
                     allow: 'multipart/form-data',
-                    // TODO: evaluate real value
-                    maxBytes: 1048576 * 6 // 6MB
+                    maxBytes: 1048576 * 6 // 6MB  TODO: discuss real value
                 },
                 handler: this.savePicture,
                 description: 'Upload profile picture of a user',
                 notes: 'The picture will be streamed and attached to the document of this user',
                 tags: ['api', 'user'],
                 validate: {
-                    params: {
-                        userid: this.joi.string().required()
-                    },
                     payload: this.imageUtil.validation.basicImageSchema
                 }
             }
@@ -169,11 +162,12 @@ class User {
         // route to update user information
         server.route({
             method: 'PUT',
-            path: '/users/{userid}',
+            path: '/users/my/profile',
             config: {
                 handler: this.updateUser,
                 description: 'Update user information',
-                notes: 'It is important to add the "_rev" property!',
+                notes: 'Update one or more properties of the user. If you want to change the password or mail,' +
+                'use PUT /users/my/[password or mail]',
                 tags: ['api', 'user'],
                 validate: {
                     params: {
@@ -183,7 +177,7 @@ class User {
                     },
                     payload: this.userSchemaPUT
                         .required()
-                        .description('User JSON object WITH _rev')
+                        .description('User JSON object')
                 }
 
             }
@@ -193,11 +187,29 @@ class User {
         // route to update user password
         server.route({
             method: 'PUT',
-            path: '/users/{userid}/password',
+            path: '/users/my/password',
             config: {
                 handler: this.updateUserPassword,
                 description: 'update password of user by id',
                 notes: 'Important: add password as payload',
+                tags: ['api', 'user'],
+                validate: {
+                    payload: this.joi.object().keys({
+                        password: this.joi.string().required()
+                    })
+                }
+
+            }
+        });
+
+        // route to update user mail
+        server.route({
+            method: 'PUT',
+            path: '/users/my/mail',
+            config: {
+                handler: this.updateUserMail,
+                description: 'update mail of user by id',
+                notes: 'A new verify mail will be send',
                 tags: ['api', 'user'],
                 validate: {
                     params: {
@@ -206,7 +218,7 @@ class User {
                             .description('User Id')
                     },
                     payload: this.joi.object().keys({
-                        password: this.joi.string().required()
+                        mail: this.joi.string().required().email()
                     })
                 }
 
@@ -216,17 +228,11 @@ class User {
         // delete a particular user
         server.route({
             method: 'DELETE',
-            path: '/users/{userid}',
+            path: '/users/me',
             config: {
                 handler: this.deleteUser,
-                description: 'delete a particular trip',
-                tags: ['api', 'trip'],
-                validate: {
-                    params: {
-                        userid: this.joi.string()
-                            .required()
-                    }
-                }
+                description: 'delete user "me" ',
+                tags: ['api', 'trip']
             }
         });
 
@@ -239,7 +245,8 @@ class User {
      * @param request
      * @param reply
      */
-    getUser = (request, reply) => {
+    getUsers = (request, reply) => {
+        //TODO: limit number of result
         this.db.getUsers((err, data) => {
             if (err) {
                 return reply(this.boom.wrap(err, 400));
@@ -285,6 +292,8 @@ class User {
      */
     private savePicture = (request, reply) => {
 
+        var userId = request.auth.credentials._id;
+
         var imageProcessor = this.imageUtil.image.processor(request);
 
         var file = imageProcessor.createFileInformation('profile');
@@ -298,11 +307,11 @@ class User {
         var thumbnailStream = imageProcessor.createCroppedStream(120, 120);
 
         // save image and return promise
-        this.db.savePicture(request.params.userid, attachmentData, imageStream)
+        this.db.savePicture(userId, attachmentData, imageStream)
             .then(() => {
                 // save thumbnail and return promise
                 attachmentData.name = file.thumbnailName;
-                return this.db.savePicture(request.params.userid, attachmentData, thumbnailStream);
+                return this.db.savePicture(userId, attachmentData, thumbnailStream);
             }).then(() => {
                 // update url fields in document
                 return this.db.updateDocument(request.params.userid, {picture: file.imageLocation});
@@ -344,6 +353,7 @@ class User {
      * @param reply
      */
     private createUser = (request, reply) => {
+        // TODO: am I logged in? Can I create a new user? I don't think so
         this.db.getUserLogin(request.payload.mail).then((user) => {
             return reply(this.boom.badRequest('mail already exists'));
         }).catch((err) => {
@@ -352,20 +362,17 @@ class User {
             }
             this.bcrypt.genSalt(10, (err, salt) => {
                 this.bcrypt.hash(request.payload.password, salt, (err, hash) => {
-                    request.payload.password = hash;
-                    request.payload.strategy = 'default';
-                    // registration-verify information
-                    request.payload.uuid = this.uuid.v4();
-                    request.payload.verified = false;
 
-                    // dummy picture
-                    request.payload.picture = {
-                        original: "https://achvr-assets.global.ssl.fastly.net/assets/profile_placeholder_square150-dd15a533084a90a7e8711e90228fcf60.png",
-                        thumbnail: "https://achvr-assets.global.ssl.fastly.net/assets/profile_placeholder_square150-dd15a533084a90a7e8711e90228fcf60.png"
+                    var newUser = {
+                        password: hash,
+                        strategy: 'default',
+                        uuid: this.uuid.v4(),
+                        verified: false,
+                        type: 'user'
                     };
 
-
-                    this.db.createUser(request.payload, (err, data) => {
+                    // create the actual user, merged with the payload
+                    this.db.createUser(this.hoek.merge(request.payload, newUser), (err, data) => {
                         if (err) {
                             return reply(this.boom.wrap(err, 400));
                         }
@@ -404,7 +411,7 @@ class User {
      * @param reply
      */
     private updateUser = (request, reply) => {
-        this.db.updateUser(request.params.userid, request.payload._rev, request.payload.user, (err, data) => {
+        this.db.updateUser(request.auth.credentials._id, request.payload.user, (err, data) => {
             if (err) {
                 return reply(this.boom.wrap(err, 400));
             }
@@ -419,10 +426,35 @@ class User {
      * @param reply
      */
     private updateUserPassword = (request, reply) => {
-        this.db.updateUserPassword(request.params.userid, request.payload.password, (err, data) => {
+        this.db.updateUserPassword(request.auth.credentials._id, request.payload.password, (err, data) => {
             if (err) {
                 return reply(this.boom.wrap(err, 400));
             }
+            reply(data);
+        });
+    };
+
+    /**
+     * Update user mail of specific user.
+     *
+     * @param request
+     * @param reply
+     */
+    private updateUserMail = (request, reply) => {
+
+        // not implemented yet
+        return reply(this.boom.wrap('not implemented yet',501));
+
+        var newMail = {
+            mail: request.payload.mail,
+            verified: false
+        };
+
+        this.db.updateUserMail(request.auth.credentials._id, newMail, (err, data) => {
+            if (err) {
+                return reply(this.boom.wrap(err, 400));
+            }
+            //TODO: send verify  mail and keep old mail address, till new mail is verified
             reply(data);
         });
     };
@@ -433,7 +465,7 @@ class User {
      * @param reply
      */
     private deleteUser = (request, reply) => {
-        this.db.deleteUserById(request.params.userid, (err, data) => {
+        this.db.deleteUserById(request.auth.credentials._id, (err, data) => {
             if (err) {
                 return reply(this.boom.wrap(err, 400));
             }
@@ -446,20 +478,17 @@ class User {
      * Initialize schemas.
      */
     private initSchemas():void {
-        var user = this.joi.object().keys({
+        this.userSchemaPOST = this.joi.object().keys({
             name: this.joi.string().required(),
-            surname: this.joi.string().optional(),
+            surname: this.joi.string().optional().email(),
             mail: this.joi.string().email().required(),
-            password: this.joi.string().required(),
-            type: this.joi.string().required().valid('user')
+            password: this.joi.string().required()
         });
 
-        var putMethodElements = this.joi.object().keys({
-            _id: this.joi.string().required(),
-            _rev: this.joi.string().required()
-        });
-
-        this.userSchemaPOST = user;
-        this.userSchemaPUT = putMethodElements.concat(user);
+        // TODO: extend schema. (e.g. description text)
+        this.userSchemaPUT = this.joi.object().keys({
+            name: this.joi.string().optional(),
+            surname: this.joi.string().optional()
+        })
     }
 }
