@@ -115,25 +115,19 @@ class User {
         // Upload a profile picture
         server.route({
             method: ['POST', 'PUT'],
-            path: '/users/{userid}/picture', // 'users/my/picture/'
+            path: '/users/my/picture',
             config: {
-                // TODO: check auth
-                auth: false,
                 payload: {
                     output: 'stream',
                     parse: true,
                     allow: 'multipart/form-data',
-                    // TODO: evaluate real value
-                    maxBytes: 1048576 * 6 // 6MB
+                    maxBytes: 1048576 * 6 // 6MB  TODO: discuss real value
                 },
                 handler: this.savePicture,
                 description: 'Upload profile picture of a user',
                 notes: 'The picture will be streamed and attached to the document of this user',
                 tags: ['api', 'user'],
                 validate: {
-                    params: {
-                        userid: this.joi.string().required()
-                    },
                     payload: this.imageUtil.validation.basicImageSchema
                 }
             }
@@ -197,18 +191,13 @@ class User {
         // route to update user password
         server.route({
             method: 'PUT',
-            path: '/users/{userid}/password',
+            path: '/users/my/password',
             config: {
                 handler: this.updateUserPassword,
                 description: 'update password of user by id',
                 notes: 'Important: add password as payload',
                 tags: ['api', 'user'],
                 validate: {
-                    params: {
-                        userid: this.joi.string()
-                            .required()
-                            .description('User Id')
-                    },
                     payload: this.joi.object().keys({
                         password: this.joi.string().required()
                     })
@@ -220,7 +209,7 @@ class User {
         // route to update user mail
         server.route({
             method: 'PUT',
-            path: '/users/{userid}/mail',
+            path: '/users/my/mail',
             config: {
                 handler: this.updateUserMail,
                 description: 'update mail of user by id',
@@ -312,6 +301,8 @@ class User {
      */
     private savePicture = (request, reply) => {
 
+        var userId = request.auth.credentials._id;
+
         var imageProcessor = this.imageUtil.image.processor(request);
 
         var file = imageProcessor.createFileInformation('profile');
@@ -325,11 +316,11 @@ class User {
         var thumbnailStream = imageProcessor.createCroppedStream(120, 120);
 
         // save image and return promise
-        this.db.savePicture(request.params.userid, attachmentData, imageStream)
+        this.db.savePicture(userId, attachmentData, imageStream)
             .then(() => {
                 // save thumbnail and return promise
                 attachmentData.name = file.thumbnailName;
-                return this.db.savePicture(request.params.userid, attachmentData, thumbnailStream);
+                return this.db.savePicture(userId, attachmentData, thumbnailStream);
             }).then(() => {
                 // update url fields in document
                 return this.db.updateDocument(request.params.userid, {picture: file.imageLocation});
@@ -444,7 +435,7 @@ class User {
      * @param reply
      */
     private updateUserPassword = (request, reply) => {
-        this.db.updateUserPassword(request.params.userid, request.payload.password, (err, data) => {
+        this.db.updateUserPassword(request.auth.credentials._id, request.payload.password, (err, data) => {
             if (err) {
                 return reply(this.boom.wrap(err, 400));
             }
@@ -468,7 +459,7 @@ class User {
             verified: false
         };
 
-        this.db.updateUserMail(request.params.userid, newMail, (err, data) => {
+        this.db.updateUserMail(request.auth.credentials._id, newMail, (err, data) => {
             if (err) {
                 return reply(this.boom.wrap(err, 400));
             }
