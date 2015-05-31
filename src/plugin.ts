@@ -28,7 +28,7 @@ class User {
         this.boom = require('boom');
         this.bcrypt = require('bcrypt');
         this.uuid = require('node-uuid');
-        this.imageUtil = require('locator-image-utility');
+        this.imageUtil = require('locator-image-utility').image;
         this.hoek = require('hoek');
         this.initSchemas();
     }
@@ -292,31 +292,31 @@ class User {
      */
     private savePicture = (request, reply) => {
 
-        var userId = request.auth.credentials._id;
+        var stripped = this.imageUtil.stripHapiRequestObject(request);
 
-        var imageProcessor = this.imageUtil.image.processor(request);
+        stripped.options.id = request.params.userid;
 
-        var file = imageProcessor.createFileInformation('profile');
+        var imageProcessor = this.imageUtil.processor(stripped.options);
 
-        var attachmentData = imageProcessor.getAttachmentData(file.filename);
+        var metaData = imageProcessor.createFileInformation('profile');
 
         // crop it, scale it and return stream
-        var imageStream = imageProcessor.createCroppedStream(200, 200);
+        var imageStream = imageProcessor.createCroppedStream(stripped.cropping, {x: 200, y: 200});
 
         // crop it, scale it for thumbnail and return stream
-        var thumbnailStream = imageProcessor.createCroppedStream(120, 120);
+        var thumbnailStream = imageProcessor.createCroppedStream(stripped.cropping, {x: 120, y: 120});
 
         // save image and return promise
-        this.db.savePicture(userId, attachmentData, imageStream)
+        this.db.savePicture(stripped.options.id, metaData.attachmentData, imageStream)
             .then(() => {
                 // save thumbnail and return promise
-                attachmentData.name = file.thumbnailName;
-                return this.db.savePicture(userId, attachmentData, thumbnailStream);
+                metaData.attachmentData.name = metaData.thumbnailName;
+                return this.db.savePicture(stripped.options.id, metaData.attachmentData, thumbnailStream);
             }).then(() => {
                 // update url fields in document
-                return this.db.updateDocument(request.params.userid, {picture: file.imageLocation});
+                return this.db.updateDocument(request.params.userid, {picture: metaData.imageLocation});
             }).then((value) => {
-                this.replySuccess(reply, file.imageLocation, value)
+                this.replySuccess(reply, metaData.imageLocation, value)
             }).catch((err) => {
                 return reply(this.boom.badRequest(err));
             });
@@ -443,7 +443,7 @@ class User {
     private updateUserMail = (request, reply) => {
 
         // not implemented yet
-        return reply(this.boom.wrap('not implemented yet',501));
+        return reply(this.boom.wrap('not implemented yet', 501));
 
         var newMail = {
             mail: request.payload.mail,
