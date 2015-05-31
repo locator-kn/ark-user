@@ -28,7 +28,7 @@ class User {
         this.boom = require('boom');
         this.bcrypt = require('bcrypt');
         this.uuid = require('node-uuid');
-        this.imageUtil = require('locator-image-utility').image;
+        this.imageUtil = require('locator-image-utility');
         this.hoek = require('hoek');
         this.initSchemas();
     }
@@ -292,11 +292,16 @@ class User {
      */
     private savePicture = (request, reply) => {
 
-        var stripped = this.imageUtil.stripHapiRequestObject(request);
+        var stripped = this.imageUtil.image.stripHapiRequestObject(request);
 
-        stripped.options.id = request.params.userid;
+        stripped.options.id = request.auth.credentials._id;
 
-        var imageProcessor = this.imageUtil.processor(stripped.options);
+        var imageProcessor = this.imageUtil.image.processor(stripped.options);
+
+        if (imageProcessor.error) {
+            console.log(imageProcessor);
+            return reply(this.boom.create(400, imageProcessor.error))
+        }
 
         var metaData = imageProcessor.createFileInformation('profile');
 
@@ -314,7 +319,7 @@ class User {
                 return this.db.savePicture(stripped.options.id, metaData.attachmentData, thumbnailStream);
             }).then(() => {
                 // update url fields in document
-                return this.db.updateDocument(request.params.userid, {picture: metaData.imageLocation});
+                return this.db.updateDocument(stripped.options.id, {picture: metaData.imageLocation});
             }).then((value) => {
                 this.replySuccess(reply, metaData.imageLocation, value)
             }).catch((err) => {

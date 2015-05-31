@@ -33,7 +33,7 @@
     "boom": "^2.7.0",
     "hoek": "^2.14.0",
     "joi": "^6.1.1",
-    "locator-image-utility": "^1.1.2",
+    "locator-image-utility": "latest",
     "node-uuid": "^1.4.3",
     "typescript": "^1.5.0-alpha"
   }
