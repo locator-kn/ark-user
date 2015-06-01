@@ -1,6 +1,6 @@
 {
   "name": "ark-user",
-  "version": "1.0.2",
+  "version": "2.0.1",
   "description": "Plugin for handling all routes, which relate to a user.",
   "main": "index.js",
   "scripts": {
@@ -31,9 +31,9 @@
   "dependencies": {
     "bcrypt": "^0.8.2",
     "boom": "^2.7.0",
-    "gm": "^1.17.0",
+    "hoek": "^2.14.0",
     "joi": "^6.1.1",
-    "locators-regex": "0.0.1",
+    "locator-image-utility": "latest",
     "node-uuid": "^1.4.3",
     "typescript": "^1.5.0-alpha"
   }
