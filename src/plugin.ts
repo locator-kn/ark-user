@@ -167,11 +167,6 @@ class User {
                 'use PUT /users/my/[password or mail]',
                 tags: ['api', 'user'],
                 validate: {
-                    params: {
-                        userid: this.joi.string()
-                            .required()
-                            .description('User Id')
-                    },
                     payload: this.userSchemaPUT
                         .required()
                         .description('User JSON object')
