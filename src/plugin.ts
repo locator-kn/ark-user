@@ -370,7 +370,10 @@ class User {
                         strategy: 'default',
                         uuid: this.uuid.v4(),
                         verified: false,
-                        type: 'user'
+                        type: 'user',
+                        age: '',
+                        residence: '',
+                        description: ''
                     };
 
                     // create the actual user, merged with the payload
@@ -482,15 +485,17 @@ class User {
     private initSchemas():void {
         this.userSchemaPOST = this.joi.object().keys({
             name: this.joi.string().required(),
-            surname: this.joi.string().optional().email(),
+            surname: this.joi.string().optional(),
             mail: this.joi.string().email().required(),
             password: this.joi.string().required()
         });
 
-        // TODO: extend schema. (e.g. description text)
         this.userSchemaPUT = this.joi.object().keys({
             name: this.joi.string().optional(),
-            surname: this.joi.string().optional()
+            surname: this.joi.string().optional(),
+            description: this.joi.string().optional(),
+            residence: this.joi.string().optional(),
+            age: this.joi.number().min(1).optional()
         })
     }
 }
