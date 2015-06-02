@@ -370,7 +370,10 @@ class User {
                         strategy: 'default',
                         uuid: this.uuid.v4(),
                         verified: false,
-                        type: 'user'
+                        type: 'user',
+                        age: '',
+                        residence: '',
+                        description: ''
                     };
 
                     // create the actual user, merged with the payload
@@ -487,7 +490,6 @@ class User {
             password: this.joi.string().required()
         });
 
-        // TODO: extend schema. (e.g. description text)
         this.userSchemaPUT = this.joi.object().keys({
             name: this.joi.string().optional(),
             surname: this.joi.string().optional(),
