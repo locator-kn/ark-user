@@ -478,21 +478,25 @@ class User {
      * Initialize schemas.
      */
     private initSchemas():void {
-        var userPOST = this.joi.object().keys({
+        var needed = this.joi.object().keys({
             name: this.joi.string().required(),
             mail: this.joi.string().email().required(),
             password: this.joi.string().required()
         });
 
-        this.userSchemaPUT = this.joi.object().keys({
-            name: this.joi.string().optional(),
+        var optional = this.joi.object().keys({
             surname: this.joi.string().optional(),
             description: this.joi.string().optional(),
             residence: this.joi.string().optional(),
-            age: this.joi.number().min(1).optional()
+            age: this.joi.string().optional()
         });
 
-        // all optional fields should also be possible when POST
-        this.userSchemaPOST = this.hoek.merge(this.userSchemaPUT, userPOST);
+        this.userSchemaPUT = optional.concat(this.joi.object().keys({
+                name: this.joi.string().optional()
+            })
+        );
+
+        this.userSchemaPOST = optional.concat(needed);
+
     }
 }
