@@ -15,16 +15,16 @@
 |Ressource   | Description  |  on Success | on Failure |
 |---|---|---|---|
 |/users           | create new user  | statusCode: 200 | statusCode: 404 |
-|/users/:userID/picture     | create a new profile picture  | json object with the destination of the picture | statusCode: 404 |
+|/users/my/picture     | create a new profile picture  | json object with the destination of the picture | statusCode: 404 |
 
 ####PUT
 |Ressource   | Description  |  on Success | on Failure |
 |---|---|---|---|
 |/users/me   | update user information  | statusCode: 200 | statusCode: 404 |
-|/users/me/password   | update user password  | statusCode: 200 | statusCode: 404 |
+|/users/my/password   | update user password  | statusCode: 200 | statusCode: 404 |
 |/users/:userID/password | update password of user by id  | statusCode: 200 | statusCode: 404 |
 |/users/:userID | update particular user  | statusCode: 200 | statusCode: 404 | 
-|/users/:userID/picture     | update the profile picture  | json object with the destination of the picture | statusCode: 404 |
+|/users/my/picture     | update the profile picture  | json object with the destination of the picture | statusCode: 404 |
 
 ####DELETE
 |Ressource   | Description  |  on Success | on Failure |
@@ -45,6 +45,8 @@
    name: 'Doe',
    surname: 'John',
    description: 'Ich bin Steffen Ich bin Steffen, Steffen wollt ich schon immer sein',
+   age: 27,
+   residence: 'Konstanz',
    "imageLocation": {
      "picture": "/i/users/368f5b48e4f45213ed912dd1e30377df/profile.png",
      "thumbnail": "/i/users/368f5b48e4f45213ed912dd1e30377df/profile-thumb.png"
