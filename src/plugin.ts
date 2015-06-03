@@ -167,11 +167,6 @@ class User {
                 'use PUT /users/my/[password or mail]',
                 tags: ['api', 'user'],
                 validate: {
-                    params: {
-                        userid: this.joi.string()
-                            .required()
-                            .description('User Id')
-                    },
                     payload: this.userSchemaPUT
                         .required()
                         .description('User JSON object')
@@ -370,7 +365,10 @@ class User {
                         strategy: 'default',
                         uuid: this.uuid.v4(),
                         verified: false,
-                        type: 'user'
+                        type: 'user',
+                        age: '',
+                        residence: '',
+                        description: ''
                     };
 
                     // create the actual user, merged with the payload
@@ -413,7 +411,7 @@ class User {
      * @param reply
      */
     private updateUser = (request, reply) => {
-        this.db.updateUser(request.auth.credentials._id, request.payload.user, (err, data) => {
+        this.db.updateUser(request.auth.credentials._id, request.payload, (err, data) => {
             if (err) {
                 return reply(this.boom.wrap(err, 400));
             }
@@ -480,17 +478,25 @@ class User {
      * Initialize schemas.
      */
     private initSchemas():void {
-        this.userSchemaPOST = this.joi.object().keys({
+        var needed = this.joi.object().keys({
             name: this.joi.string().required(),
-            surname: this.joi.string().optional().email(),
             mail: this.joi.string().email().required(),
             password: this.joi.string().required()
         });
 
-        // TODO: extend schema. (e.g. description text)
-        this.userSchemaPUT = this.joi.object().keys({
-            name: this.joi.string().optional(),
-            surname: this.joi.string().optional()
-        })
+        var optional = this.joi.object().keys({
+            surname: this.joi.string().optional(),
+            description: this.joi.string().optional(),
+            residence: this.joi.string().optional(),
+            age: this.joi.string().optional()
+        });
+
+        this.userSchemaPUT = optional.concat(this.joi.object().keys({
+                name: this.joi.string().optional()
+            })
+        );
+
+        this.userSchemaPOST = optional.concat(needed);
+
     }
 }
