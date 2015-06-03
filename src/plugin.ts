@@ -379,7 +379,7 @@ class User {
                             return reply(this.boom.wrap(err, 400));
                         }
                         var userSessionData = {
-                            mail: request.payload.mail,
+                            mail: request.payload.mail.toLowerCase(),
                             _id: data.id
                         };
                         request.auth.session.set(userSessionData);
