@@ -360,6 +360,14 @@ class User {
             this.bcrypt.genSalt(10, (err, salt) => {
                 this.bcrypt.hash(request.payload.password, salt, (err, hash) => {
 
+                    if (!request.payload.surname) {
+                        // extract possiblie surname
+                        var nameArray = request.payload.name.split(' ');
+                        request.payload.name = nameArray[0];
+                        nameArray.slice(0);
+                        request.payload.surname = nameArray.join(' ');
+                    }
+
                     var newUser = {
                         password: hash,
                         strategy: 'default',
