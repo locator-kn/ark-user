@@ -368,24 +368,29 @@ class User {
                         request.payload.surname = nameArray.join(' ');
                     }
 
+                    var lowerCaseMail = request.payload.mail.toLowerCase();
+
                     var newUser = {
                         password: hash,
                         strategy: 'default',
                         uuid: this.uuid.v4(),
                         verified: false,
                         type: 'user',
-                        age: '',
-                        residence: '',
-                        description: ''
+                        birthdate: request.payload.birthdate || '',
+                        residence: request.payload.residence || '',
+                        description: request.payload.description || '',
+                        mail: lowerCaseMail,
+                        surname: request.payload.surname || '',
+                        name: request.payload.name
                     };
 
                     // create the actual user, merged with the payload
-                    this.db.createUser(this.hoek.merge(request.payload, newUser), (err, data) => {
+                    this.db.createUser(newUser, (err, data) => {
                         if (err) {
                             return reply(this.boom.badRequest(err));
                         }
                         var userSessionData = {
-                            mail: request.payload.mail.toLowerCase(),
+                            mail: lowerCaseMail,
                             _id: data.id
                         };
                         request.auth.session.set(userSessionData);
@@ -496,7 +501,7 @@ class User {
             surname: this.joi.string().optional(),
             description: this.joi.string().optional(),
             residence: this.joi.string().optional(),
-            age: this.joi.string().optional()
+            birthdate: this.joi.date().optional()
         });
 
         this.userSchemaPUT = optional.concat(this.joi.object().keys({
