@@ -292,7 +292,7 @@ class User {
 
         if (imageProcessor.error) {
             console.log(imageProcessor);
-            return reply(this.boom.create(400, imageProcessor.error))
+            return reply(this.boom.badRequest(imageProcessor.error))
         }
 
         var metaData = imageProcessor.createFileInformation('profile');
@@ -382,7 +382,7 @@ class User {
                     // create the actual user, merged with the payload
                     this.db.createUser(this.hoek.merge(request.payload, newUser), (err, data) => {
                         if (err) {
-                            return reply(this.boom.wrap(err, 400));
+                            return reply(this.boom.badRequest(err));
                         }
                         var userSessionData = {
                             mail: request.payload.mail.toLowerCase(),
@@ -421,7 +421,7 @@ class User {
     private updateUser = (request, reply) => {
         this.db.updateUser(request.auth.credentials._id, request.payload, (err, data) => {
             if (err) {
-                return reply(this.boom.wrap(err, 400));
+                return reply(this.boom.badRequest(err));
             }
             reply(data);
         });
@@ -436,7 +436,7 @@ class User {
     private updateUserPassword = (request, reply) => {
         this.db.updateUserPassword(request.auth.credentials._id, request.payload.password, (err, data) => {
             if (err) {
-                return reply(this.boom.wrap(err, 400));
+                return reply(this.boom.badRequest(err));
             }
             reply(data);
         });
@@ -460,7 +460,7 @@ class User {
 
         this.db.updateUserMail(request.auth.credentials._id, newMail, (err, data) => {
             if (err) {
-                return reply(this.boom.wrap(err, 400));
+                return reply(this.boom.badRequest(err));
             }
             //TODO: send verify  mail and keep old mail address, till new mail is verified
             reply(data);
@@ -475,7 +475,7 @@ class User {
     private deleteUser = (request, reply) => {
         this.db.deleteUserById(request.auth.credentials._id, (err, data) => {
             if (err) {
-                return reply(this.boom.wrap(err, 400));
+                return reply(this.boom.badRequest(err));
             }
             request.auth.session.clear();
             reply(data);
