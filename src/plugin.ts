@@ -364,8 +364,11 @@ class User {
                         // extract possiblie surname
                         var nameArray = request.payload.name.split(' ');
                         request.payload.name = nameArray[0];
-                        nameArray.slice(0);
-                        request.payload.surname = nameArray.join(' ');
+
+                        if(nameArray.length > 1) {
+                            nameArray.slice(1);
+                            request.payload.surname = nameArray.join(' ');
+                        }
                     }
 
                     var lowerCaseMail = request.payload.mail.toLowerCase();
