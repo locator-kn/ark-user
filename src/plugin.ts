@@ -311,7 +311,7 @@ class User {
                 return this.db.savePicture(stripped.options.id, metaData.attachmentData, thumbnailStream);
             }).then(() => {
                 // update url fields in document
-                return this.db.updateDocument(stripped.options.id, {picture: metaData.imageLocation});
+                return this.db.updateDocumentWithoutCheck(stripped.options.id, {picture: metaData.imageLocation});
             }).then((value) => {
                 this.replySuccess(reply, metaData.imageLocation, value)
             }).catch((err) => {
