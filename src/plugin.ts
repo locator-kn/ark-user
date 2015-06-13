@@ -365,7 +365,7 @@ class User {
                         var nameArray = request.payload.name.split(' ');
                         request.payload.name = nameArray[0];
 
-                        if(nameArray.length > 1) {
+                        if (nameArray.length > 1) {
                             nameArray.slice(1);
                             request.payload.surname = nameArray.join(' ');
                         }
@@ -442,13 +442,24 @@ class User {
      * @param reply
      */
     private updateUserPassword = (request, reply) => {
-        this.db.updateUserPassword(request.auth.credentials._id, request.payload.password, (err, data) => {
-            if (err) {
+        this.getPasswordHash(request.payload.password, (err, hash) => {
+            if(err) {
                 return reply(this.boom.badRequest(err));
             }
-            reply(data);
+            this.db.updateUserPassword(request.auth.credentials._id, hash, (err, data) => {
+                if (err) {
+                    return reply(this.boom.badRequest(err));
+                }
+                reply(data);
+            });
         });
     };
+
+    getPasswordHash(password:string, callback) {
+        this.bcrypt.genSalt(10, (err, salt) => {
+            this.bcrypt.hash(request.payload.password, salt, callback);
+        });
+    }
 
     /**
      * Update user mail of specific user.
