@@ -357,50 +357,50 @@ class User {
             if (err) {
                 return reply(this.boom.badRequest('something went wrong'));
             }
-            this.bcrypt.genSalt(10, (err, salt) => {
-                this.bcrypt.hash(request.payload.password, salt, (err, hash) => {
+            this.getPasswordHash(request.payload.password, (err, hash) => {
+                if (err) {
+                    return reply(this.boom.badRequest(err));
+                }
+                if (!request.payload.surname) {
+                    // extract possiblie surname
+                    var nameArray = request.payload.name.split(' ');
+                    request.payload.name = nameArray[0];
 
-                    if (!request.payload.surname) {
-                        // extract possiblie surname
-                        var nameArray = request.payload.name.split(' ');
-                        request.payload.name = nameArray[0];
-
-                        if(nameArray.length > 1) {
-                            nameArray.slice(1);
-                            request.payload.surname = nameArray.join(' ');
-                        }
+                    if (nameArray.length > 1) {
+                        nameArray.slice(1);
+                        request.payload.surname = nameArray.join(' ');
                     }
+                }
 
-                    var lowerCaseMail = request.payload.mail.toLowerCase();
+                var lowerCaseMail = request.payload.mail.toLowerCase();
 
-                    var newUser = {
-                        password: hash,
-                        strategy: 'default',
-                        uuid: this.uuid.v4(),
-                        verified: false,
-                        type: 'user',
-                        birthdate: request.payload.birthdate || '',
-                        residence: request.payload.residence || '',
-                        description: request.payload.description || '',
+                var newUser = {
+                    password: hash,
+                    strategy: 'default',
+                    uuid: this.uuid.v4(),
+                    verified: false,
+                    type: 'user',
+                    birthdate: request.payload.birthdate || '',
+                    residence: request.payload.residence || '',
+                    description: request.payload.description || '',
+                    mail: lowerCaseMail,
+                    surname: request.payload.surname || '',
+                    name: request.payload.name
+                };
+
+                // create the actual user, merged with the payload
+                this.db.createUser(newUser, (err, data) => {
+                    if (err) {
+                        return reply(this.boom.badRequest(err));
+                    }
+                    var userSessionData = {
                         mail: lowerCaseMail,
-                        surname: request.payload.surname || '',
-                        name: request.payload.name
+                        _id: data.id
                     };
+                    request.auth.session.set(userSessionData);
+                    reply(data);
 
-                    // create the actual user, merged with the payload
-                    this.db.createUser(newUser, (err, data) => {
-                        if (err) {
-                            return reply(this.boom.badRequest(err));
-                        }
-                        var userSessionData = {
-                            mail: lowerCaseMail,
-                            _id: data.id
-                        };
-                        request.auth.session.set(userSessionData);
-                        reply(data);
-
-                        this.sendRegistrationMail(request.payload);
-                    });
+                    this.sendRegistrationMail(request.payload);
                 });
             });
         });
@@ -442,13 +442,24 @@ class User {
      * @param reply
      */
     private updateUserPassword = (request, reply) => {
-        this.db.updateUserPassword(request.auth.credentials._id, request.payload.password, (err, data) => {
+        this.getPasswordHash(request.payload.password, (err, hash) => {
             if (err) {
                 return reply(this.boom.badRequest(err));
             }
-            reply(data);
+            this.db.updateUserPassword(request.auth.credentials._id, hash, (err, data) => {
+                if (err) {
+                    return reply(this.boom.badRequest(err));
+                }
+                reply(data);
+            });
         });
     };
+
+    getPasswordHash(password:string, callback) {
+        this.bcrypt.genSalt(10, (err, salt) => {
+            this.bcrypt.hash(password, salt, callback);
+        });
+    }
 
     /**
      * Update user mail of specific user.
