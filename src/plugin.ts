@@ -457,7 +457,7 @@ class User {
 
     getPasswordHash(password:string, callback) {
         this.bcrypt.genSalt(10, (err, salt) => {
-            this.bcrypt.hash(request.payload.password, salt, callback);
+            this.bcrypt.hash(password, salt, callback);
         });
     }
 
