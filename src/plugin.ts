@@ -353,7 +353,7 @@ class User {
         // TODO: am I logged in? Can I create a new user? I don't think so
         var lowerCaseMail = request.payload.mail.toLowerCase();
         this.db.getUserLogin(lowerCaseMail).then((user) => {
-            return reply(this.boom.badRequest('mail already exists'));
+            return reply(this.boom.conflict('mail already exists'));
         }).catch((err) => {
             if (err) {
                 return reply(this.boom.badRequest('something went wrong'));
