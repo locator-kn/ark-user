@@ -351,7 +351,7 @@ class User {
      */
     private createUser = (request, reply) => {
         // TODO: am I logged in? Can I create a new user? I don't think so
-        this.db.getUserLogin(request.payload.mail).then((user) => {
+        this.db.getUserLogin(request.payload.mail.toLowerCase()).then((user) => {
             return reply(this.boom.badRequest('mail already exists'));
         }).catch((err) => {
             if (err) {
