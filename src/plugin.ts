@@ -65,6 +65,7 @@ class User {
             method: 'GET',
             path: '/users/{userid}',
             config: {
+                auth: false,
                 handler: this.getUserById,
                 description: 'Get particular user by user id',
                 notes: 'sample call: /users/124239845725',
@@ -168,7 +169,6 @@ class User {
                 tags: ['api', 'user'],
                 validate: {
                     payload: this.userSchemaPUT
-                        .required()
                         .description('User JSON object')
                 }
 
