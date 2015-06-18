@@ -363,7 +363,7 @@ class User {
                     return reply(this.boom.badRequest(err));
                 }
                 if (!request.payload.surname) {
-                    // extract possiblie surname
+                    // extract possible surname
                     var nameArray = request.payload.name.split(' ');
                     request.payload.name = nameArray[0];
 
