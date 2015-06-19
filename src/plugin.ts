@@ -352,12 +352,8 @@ class User {
     private createUser = (request, reply) => {
         // TODO: am I logged in? Can I create a new user? I don't think so
         var lowerCaseMail = request.payload.mail.toLowerCase();
-        this.db.getUserLogin(lowerCaseMail).then((user) => {
-            return reply(this.boom.conflict('mail already exists'));
-        }).catch((err) => {
-            if (err) {
-                return reply(this.boom.badRequest('something went wrong'));
-            }
+        this.db.isMailAvailable(lowerCaseMail).then(user => {
+
             this.getPasswordHash(request.payload.password, (err, hash) => {
                 if (err) {
                     return reply(this.boom.badRequest(err));
@@ -372,7 +368,6 @@ class User {
                         request.payload.surname = nameArray.join(' ');
                     }
                 }
-
 
                 var newUser = {
                     password: hash,
@@ -403,7 +398,7 @@ class User {
                     this.sendRegistrationMail(request.payload);
                 });
             });
-        });
+        }).catch(reply);
     };
 
     /**
