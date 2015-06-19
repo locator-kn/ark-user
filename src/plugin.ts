@@ -352,7 +352,7 @@ class User {
     private createUser = (request, reply) => {
         // TODO: am I logged in? Can I create a new user? I don't think so
         var lowerCaseMail = request.payload.mail.toLowerCase();
-        this.db.isMailAvailable(lowerCaseMail).then((user) => {
+        this.db.isMailAvailable(lowerCaseMail).then(user => {
 
             this.getPasswordHash(request.payload.password, (err, hash) => {
                 if (err) {
