@@ -362,14 +362,13 @@ class User {
                 if (err) {
                     return reply(this.boom.badRequest(err));
                 }
-                if (!request.payload.surname) {
-                    // extract possiblie surname
-                    var nameArray = request.payload.name.split(' ');
-                    request.payload.name = nameArray[0];
 
+                // extract possiblie surname
+                if (!request.payload.surname) {
+                    var nameArray = request.payload.name.split(' ');
                     if (nameArray.length > 1) {
-                        nameArray.slice(1);
-                        request.payload.surname = nameArray.join(' ');
+                        request.payload.surname = nameArray[nameArray.length - 1];
+                        request.payload.name = nameArray.slice(0, nameArray.length - 1).join(' ')
                     }
                 }
 
