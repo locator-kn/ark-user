@@ -500,25 +500,20 @@ class User {
      * Initialize schemas.
      */
     private initSchemas():void {
-        var needed = this.joi.object().keys({
-            name: this.joi.string().required(),
-            mail: this.joi.string().email().required(),
-            password: this.joi.string().required()
+        var userSchema = this.joi.object().keys({
+            name: this.joi.string(),
+            mail: this.joi.string().email(),
+            password: this.joi.string(),
+            surname: this.joi.string().optional().allow(''),
+            description: this.joi.string().optional().allow(''),
+            residence: this.joi.string().optional().allow(''),
+            birthdate: this.joi.date().optional().allow('')
         });
 
-        var optional = this.joi.object().keys({
-            surname: this.joi.string().optional(),
-            description: this.joi.string().optional(),
-            residence: this.joi.string().optional(),
-            birthdate: this.joi.date().optional()
-        });
+        this.userSchemaPUT = userSchema.required().min(1).description('Updating user information');
 
-        this.userSchemaPUT = optional.concat(this.joi.object().keys({
-                name: this.joi.string().optional()
-            })
-        );
-
-        this.userSchemaPOST = optional.concat(needed);
+        var required = userSchema.requiredKeys('name', 'mail', 'password');
+        this.userSchemaPOST = required.required().description('Registration data')
 
     }
 }
