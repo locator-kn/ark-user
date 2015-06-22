@@ -487,13 +487,12 @@ class User {
      * @param reply
      */
     private deleteUser = (request, reply) => {
-        this.db.deleteUserById(request.auth.credentials._id, (err, data) => {
-            if (err) {
-                return reply(this.boom.badRequest(err));
-            }
+        this.db.deleteUserById(request.auth.credentials._id).then(value => {
+
             request.auth.session.clear();
-            reply(data);
-        });
+            reply(value);
+        }).catch(reply)
+
     };
 
     /**
