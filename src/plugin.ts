@@ -15,6 +15,7 @@ class User {
     uuid:any;
     imageUtil:any;
     hoek:any;
+    generatePassword:any;
 
     constructor() {
         this.register.attributes = {
@@ -27,6 +28,8 @@ class User {
         this.uuid = require('node-uuid');
         this.imageUtil = require('locator-image-utility');
         this.hoek = require('hoek');
+        this.generatePassword = require('password-generator');
+
         this.initSchemas();
     }
 
@@ -272,7 +275,68 @@ class User {
         }
     };
 
+    bulkCreateUser = (request, reply) => {
+        if (!request.auth.isAdmin) {
+            return reply(this.boom.unauthorized());
+        }
+
+        var users = request.payload;
+
+        users.forEach(user => {
+            var lowerCaseMail = user.mail.toLowerCase();
+            this.db.isMailAvailable(lowerCaseMail).then(() => {
+
+                // generate password
+                var newPassword = this.generatePassword(12, false);
+
+                this.getPasswordHash(newPassword, (err, hash) => {
+                    if (err) {
+                        return reply(this.boom.badRequest(err));
+                    }
+
+
+                    var newUser = {
+                        password: hash,
+                        strategy: 'default',
+                        uuid: this.uuid.v4(),
+                        verified: false,
+                        type: 'user',
+                        birthdate: '',
+                        residence: '',
+                        description: '',
+                        mail: lowerCaseMail,
+                        surname: '',
+                        name: user.name
+                    };
+
+                    // create the actual user
+                    this.db.createUser(newUser, (err, data) => {
+                        if (err) {
+                            console.error('creating new user ', newUser, 'failed: ', err);
+                            return;
+                        }
+
+                        console.log('new User ', newUser, ' created');
+
+
+                        this.mailer.sendRegistrationMailWithPassword({
+                            name: newUser.name,
+                            mail: newUser.mail,
+                            password: newPassword
+                        });
+
+                        // create a default location (and trip?)
+                        this.db.createDefaultLocation(data.id)
+                            .then(value => console.log('default location created', value))
+                            .catch(err => console.log('error creating default location', err));
+                    });
+                });
+            }).catch(err => console.log('error', err));
+
         });
+
+        return reply('ok');
+
     };
 
     /**
@@ -439,14 +503,14 @@ class User {
      *
      * @param payload
      */
-    private sendRegistrationMail(payload):void {
+    private sendRegistrationMail = (payload) => {
         var user = {
             name: payload.name,
             mail: payload.mail,
             uuid: payload.uuid
         };
         this.mailer.sendRegistrationMail(user);
-    }
+    };
 
     /**
      * update user in database.
