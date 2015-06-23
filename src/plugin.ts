@@ -487,29 +487,19 @@ class User {
                     request.auth.session.set(userSessionData);
                     reply(data);
 
-                    this.sendRegistrationMail(request.payload);
+                    this.mailer.sendRegistrationMail({
+                        name: newUser.name,
+                        mail: newUser.mail,
+                        uuid: newUser.uuid
+                    });
 
                     // create a default location TODO: (and trip?)
                     this.db.createDefaultLocation(data.id)
-                        .then(value => console.log('default location created'))
-                        .catch(err => console.log('error creating default location'));
+                        .then(value => console.log('default location created', value))
+                        .catch(err => console.log('error creating default location', err));
                 });
             });
         }).catch(reply);
-    };
-
-    /**
-     * function to create mail information object and trigger mail.
-     *
-     * @param payload
-     */
-    private sendRegistrationMail = (payload) => {
-        var user = {
-            name: payload.name,
-            mail: payload.mail,
-            uuid: payload.uuid
-        };
-        this.mailer.sendRegistrationMail(user);
     };
 
     /**
