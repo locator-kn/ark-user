@@ -146,8 +146,8 @@ class User {
             config: {
                 auth: false,
                 handler: this.createUser,
-                description: 'Create new user',
-                notes: '_id is the mail address of the user',
+                description: 'Create/Register new user',
+                notes: 'A new default location will be created for the user',
                 tags: ['api', 'user'],
                 validate: {
                     payload: this.userSchemaPOST
@@ -383,7 +383,7 @@ class User {
                     name: request.payload.name
                 };
 
-                // create the actual user, merged with the payload
+                // create the actual user
                 this.db.createUser(newUser, (err, data) => {
                     if (err) {
                         return reply(this.boom.badRequest(err));
@@ -396,6 +396,11 @@ class User {
                     reply(data);
 
                     this.sendRegistrationMail(request.payload);
+
+                    // create a default location (and trip?)
+                    this.db.createDefaultLocation(data.id)
+                        .then(value => console.log('default location created'))
+                        .catch(err => console.log('error creating default location'));
                 });
             });
         }).catch(reply);
