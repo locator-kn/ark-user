@@ -260,11 +260,18 @@ class User {
      */
     getUsers = (request, reply) => {
         //TODO: limit number of result
-        this.db.getUsers((err, data) => {
-            if (err) {
-                return reply(this.boom.wrap(err, 400));
-            }
-            reply(data);
+        if (request.auth.isAdmin) {
+            this.db.getUsers((err, data) => {
+                if (err) {
+                    return reply(this.boom.wrap(err, 400));
+                }
+                reply(data);
+            });
+        } else {
+            return reply(this.boom.unauthorized());
+        }
+    };
+
         });
     };
 
