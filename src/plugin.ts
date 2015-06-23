@@ -263,7 +263,7 @@ class User {
      */
     getUsers = (request, reply) => {
         //TODO: limit number of result
-        if (request.auth.isAdmin) {
+        if (request.auth.credentials.isAdmin) {
             this.db.getUsers((err, data) => {
                 if (err) {
                     return reply(this.boom.wrap(err, 400));
@@ -276,7 +276,7 @@ class User {
     };
 
     bulkCreateUser = (request, reply) => {
-        if (!request.auth.isAdmin) {
+        if (!request.auth.credentials.isAdmin) {
             return reply(this.boom.unauthorized());
         }
 
@@ -489,7 +489,7 @@ class User {
 
                     this.sendRegistrationMail(request.payload);
 
-                    // create a default location (and trip?)
+                    // create a default location TODO: (and trip?)
                     this.db.createDefaultLocation(data.id)
                         .then(value => console.log('default location created'))
                         .catch(err => console.log('error creating default location'));
