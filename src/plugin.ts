@@ -15,6 +15,7 @@ class User {
     uuid:any;
     imageUtil:any;
     hoek:any;
+    generatePassword:any;
 
     constructor() {
         this.register.attributes = {
@@ -27,6 +28,8 @@ class User {
         this.uuid = require('node-uuid');
         this.imageUtil = require('locator-image-utility');
         this.hoek = require('hoek');
+        this.generatePassword = require('password-generator');
+
         this.initSchemas();
     }
 
@@ -157,6 +160,27 @@ class User {
             }
         });
 
+        // route to create new user
+        server.route({
+            method: 'POST',
+            path: '/users/bulk',
+            config: {
+                auth: false, // will be handled inside handler
+                handler: this.bulkCreateUser,
+                description: 'Create/Register a payload full of users',
+                notes: 'A new default location will be created for each user and they will get a mail with new credentials',
+                tags: ['api', 'user'],
+                validate: {
+                    payload: this.joi.array().items(
+                        this.joi.object().keys({
+                            name: this.joi.string().required(),
+                            mail: this.joi.string().email().required()
+                        })
+                    ).required()
+                }
+            }
+        });
+
         // route to update user information
         server.route({
             method: 'PUT',
@@ -239,12 +263,80 @@ class User {
      */
     getUsers = (request, reply) => {
         //TODO: limit number of result
-        this.db.getUsers((err, data) => {
-            if (err) {
-                return reply(this.boom.wrap(err, 400));
-            }
-            reply(data);
+        if (request.auth.credentials.isAdmin) {
+            this.db.getUsers((err, data) => {
+                if (err) {
+                    return reply(this.boom.wrap(err, 400));
+                }
+                reply(data);
+            });
+        } else {
+            return reply(this.boom.unauthorized());
+        }
+    };
+
+    bulkCreateUser = (request, reply) => {
+        if (!request.auth.credentials.isAdmin) {
+            return reply(this.boom.unauthorized());
+        }
+
+        var users = request.payload;
+
+        users.forEach(user => {
+            var lowerCaseMail = user.mail.toLowerCase();
+            this.db.isMailAvailable(lowerCaseMail).then(() => {
+
+                // generate password
+                var newPassword = this.generatePassword(12, false);
+
+                this.getPasswordHash(newPassword, (err, hash) => {
+                    if (err) {
+                        return reply(this.boom.badRequest(err));
+                    }
+
+
+                    var newUser = {
+                        password: hash,
+                        strategy: 'default',
+                        uuid: this.uuid.v4(),
+                        verified: false,
+                        type: 'user',
+                        birthdate: '',
+                        residence: '',
+                        description: '',
+                        mail: lowerCaseMail,
+                        surname: '',
+                        name: user.name
+                    };
+
+                    // create the actual user
+                    this.db.createUser(newUser, (err, data) => {
+                        if (err) {
+                            console.error('creating new user ', newUser, 'failed: ', err);
+                            return;
+                        }
+
+                        console.log('new User ', newUser, ' created');
+
+
+                        this.mailer.sendRegistrationMailWithPassword({
+                            name: newUser.name,
+                            mail: newUser.mail,
+                            password: newPassword
+                        });
+
+                        // create a default location (and trip?)
+                        this.db.createDefaultLocation(data.id)
+                            .then(value => console.log('default location created', value))
+                            .catch(err => console.log('error creating default location', err));
+                    });
+                });
+            }).catch(err => console.log('error', err));
+
         });
+
+        return reply('ok');
+
     };
 
     /**
@@ -397,7 +489,7 @@ class User {
 
                     this.sendRegistrationMail(request.payload);
 
-                    // create a default location (and trip?)
+                    // create a default location TODO: (and trip?)
                     this.db.createDefaultLocation(data.id)
                         .then(value => console.log('default location created'))
                         .catch(err => console.log('error creating default location'));
@@ -411,14 +503,14 @@ class User {
      *
      * @param payload
      */
-    private sendRegistrationMail(payload):void {
+    private sendRegistrationMail = (payload) => {
         var user = {
             name: payload.name,
             mail: payload.mail,
             uuid: payload.uuid
         };
         this.mailer.sendRegistrationMail(user);
-    }
+    };
 
     /**
      * update user in database.
