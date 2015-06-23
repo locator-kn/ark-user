@@ -157,6 +157,27 @@ class User {
             }
         });
 
+        // route to create new user
+        server.route({
+            method: 'POST',
+            path: '/users/bulk',
+            config: {
+                auth: false, // will be handled inside handler
+                handler: this.bulkCreateUser,
+                description: 'Create/Register a payload full of users',
+                notes: 'A new default location will be created for each user and they will get a mail with new credentials',
+                tags: ['api', 'user'],
+                validate: {
+                    payload: this.joi.array().items(
+                        this.joi.object().keys({
+                            name: this.joi.string().required(),
+                            mail: this.joi.string().email().required()
+                        })
+                    ).required()
+                }
+            }
+        });
+
         // route to update user information
         server.route({
             method: 'PUT',
