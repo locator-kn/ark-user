@@ -103,6 +103,9 @@ class User {
                             .required(),
                         ext: this.joi.string()
                             .required().regex(this.imageUtil.regex.imageExtension)
+                    },
+                    query: {
+                        size: this.joi.string().valid(['medium'])
                     }
                 }
 
@@ -325,10 +328,9 @@ class User {
                             password: newPassword
                         });
 
-                        // create a default location (and trip?)
-                        this.db.createDefaultLocation(data.id)
-                            .then(value => console.log('default location created', value))
-                            .catch(err => console.log('error creating default location', err));
+                        this.db.addDefaultLocationToUser(data.id)
+                            .then(value => console.log('default location added', value))
+                            .catch(err => console.log('error adding default location', err));
                     });
                 });
             }).catch(err => console.log('error', err));
@@ -442,7 +444,6 @@ class User {
      * @param reply
      */
     private createUser = (request, reply) => {
-        // TODO: am I logged in? Can I create a new user? I don't think so
         var lowerCaseMail = request.payload.mail.toLowerCase();
         this.db.isMailAvailable(lowerCaseMail).then(user => {
 
