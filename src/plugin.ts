@@ -495,9 +495,9 @@ class User {
                     });
 
                     // create a default location TODO: (and trip?)
-                    this.db.createDefaultLocation(data.id)
-                        .then(value => console.log('default location created', value))
-                        .catch(err => console.log('error creating default location', err));
+                    this.db.addDefaultLocationToUser(data.id)
+                        .then(value => console.log('default location added', value))
+                        .catch(err => console.log('error adding default location', err));
                 });
             });
         }).catch(reply);
