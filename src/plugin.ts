@@ -103,10 +103,11 @@ class User {
                             .required(),
                         ext: this.joi.string()
                             .required().regex(this.imageUtil.regex.imageExtension)
-                    },
+                    }
+                   /* ,
                     query: {
                         size: this.joi.string().valid(['medium'])
-                    }
+                    }*/
                 }
 
             }
