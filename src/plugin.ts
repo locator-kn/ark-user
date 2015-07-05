@@ -108,13 +108,16 @@ class User {
                             .required(),
                         ext: this.joi.string()
                             .required().regex(this.imageUtil.regex.imageExtension)
-                    }
-                    /* ,
-                     query: {
-                     size: this.joi.string().valid(['medium'])
-                     }*/
+                    },
+                    query: this.joi.object().keys({
+                        size: this.joi.string().valid([
+                            this.imageSize.mini.name,
+                            this.imageSize.midi.name,
+                            this.imageSize.maxi.name,
+                            this.imageSize.thumb.name
+                        ])
+                    }).unknown()
                 }
-
             }
         });
 
