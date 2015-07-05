@@ -96,7 +96,19 @@ class User {
             path: '/users/{userid}/{name}.{ext}',
             config: {
                 auth: false,
-                handler: this.getPicture,
+                handler: (request, reply) => {
+                    var documentId = request.params.userid;
+                    var name = request.params.name;
+                    var ext = request.params.ext;
+                    var size = request.query.size;
+
+                    if (size) {
+                        reply().redirect('/api/v1/data/' + documentId + '/' + name + '.' + ext + '?size=' + size);
+                    } else {
+                        reply().redirect('/api/v1/data/' + documentId + '/' + name + '.' + ext);
+
+                    }
+                },
                 description: 'Get the preview picture of a user by id',
                 notes: 'sample call: /users/1222123132/profile.jpg',
                 tags: ['api', 'user'],
