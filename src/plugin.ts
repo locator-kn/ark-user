@@ -3,6 +3,8 @@ export interface IRegister {
     attributes?: any;
 }
 
+import {initLogging, log} from './util/logging'
+
 export default
 class User {
     db:any;
@@ -16,6 +18,7 @@ class User {
     imageUtil:any;
     hoek:any;
     generatePassword:any;
+    imageSize:any
 
     constructor() {
         this.register.attributes = {
@@ -27,6 +30,7 @@ class User {
         this.bcrypt = require('bcrypt');
         this.uuid = require('node-uuid');
         this.imageUtil = require('locator-image-utility');
+        this.imageSize = require('locator-image-utility').size;
         this.hoek = require('hoek');
         this.generatePassword = require('password-generator');
 
@@ -47,6 +51,7 @@ class User {
         });
 
         this._register(server, options);
+        initLogging(server)
         next();
     };
 
@@ -104,10 +109,10 @@ class User {
                         ext: this.joi.string()
                             .required().regex(this.imageUtil.regex.imageExtension)
                     }
-                   /* ,
-                    query: {
-                        size: this.joi.string().valid(['medium'])
-                    }*/
+                    /* ,
+                     query: {
+                     size: this.joi.string().valid(['medium'])
+                     }*/
                 }
 
             }
@@ -380,47 +385,47 @@ class User {
     private savePicture = (request, reply) => {
 
         var stripped = this.imageUtil.image.stripHapiRequestObject(request);
-
-        stripped.options.id = request.auth.credentials._id;
+        var cropping = stripped.cropping;
+        var requestData = stripped.options;
+        requestData.id = request.auth.credentials._id;
 
         var imageProcessor = this.imageUtil.image.processor(stripped.options);
-
         if (imageProcessor.error) {
-            console.log(imageProcessor);
             return reply(this.boom.badRequest(imageProcessor.error))
         }
 
-        var metaData = imageProcessor.createFileInformation('profile');
+        var pictureData = imageProcessor.createFileInformation('profile');
+        var attachmentData = pictureData.attachmentData;
 
         // crop it, scale it and return stream
-        var imageStream = imageProcessor.createCroppedStream(stripped.cropping, {x: 200, y: 200});
+        var readStream = imageProcessor.createCroppedStream(stripped.cropping, {x: 200, y: 200});
 
-        // crop it, scale it for thumbnail and return stream
-        var thumbnailStream = imageProcessor.createCroppedStream(stripped.cropping, {x: 120, y: 120});
-
-        // save image and return promise
-        this.db.savePicture(stripped.options.id, metaData.attachmentData, imageStream)
+        this.db.savePicture(requestData.id, attachmentData, readStream)
             .then(() => {
-                // save thumbnail and return promise
-                metaData.attachmentData.name = metaData.thumbnailName;
-                return this.db.savePicture(stripped.options.id, metaData.attachmentData, thumbnailStream);
-            }).then(() => {
-                // update url fields in document
-                return this.db.updateDocumentWithoutCheck(stripped.options.id, {picture: metaData.imageLocation});
-            }).then((value) => {
-                this.replySuccess(reply, metaData.imageLocation, value)
-            }).catch((err) => {
-                return reply(this.boom.badRequest(err));
-            });
-    };
+                return this.db.updateDocumentWithoutCheck(requestData.id, {picture: pictureData.url}, 'location');
+            }).then((value:any) => {
+                value.imageLocation = pictureData.url;
+                reply(value).created(pictureData.url);
+            }).catch(reply)
 
-    private replySuccess = (reply, imageLocation, returnValue)=> {
-        reply({
-            message: 'ok',
-            imageLocation: imageLocation,
-            id: returnValue.id,
-            rev: returnValue.rev
-        });
+            //  save all other kinds of images after replying
+            .then(() => {
+                readStream = imageProcessor.createCroppedStream(cropping, this.imageSize.thumb.size); // Thumbnail
+                attachmentData.name = this.imageSize.thumb.name;
+                return this.db.savePicture(requestData.id, attachmentData, readStream)
+            }).then(() => {
+                readStream = imageProcessor.createCroppedStream(cropping, this.imageSize.mini.size); // mini
+                attachmentData.name = this.imageSize.mini.name;
+                return this.db.savePicture(requestData.id, attachmentData, readStream)
+            }).then(() => {
+                readStream = imageProcessor.createCroppedStream(cropping, this.imageSize.midi.size); // midi
+                attachmentData.name = this.imageSize.midi.name;
+                return this.db.savePicture(requestData.id, attachmentData, readStream)
+            }).then(() => {
+                readStream = imageProcessor.createCroppedStream(cropping, this.imageSize.maxi.size); // maxi
+                attachmentData.name = this.imageSize.maxi.name;
+                return this.db.savePicture(requestData.id, attachmentData, readStream)
+            }).catch(err => log(err));
     };
 
     /**
