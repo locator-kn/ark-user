@@ -414,6 +414,10 @@ class User {
 
         // crop it, scale it and return stream
         var readStream = imageProcessor.createCroppedStream(stripped.cropping, {x: 200, y: 200});
+        var thumb = imageProcessor.createCroppedStream(cropping, this.imageSize.thumb.size); // Thumbnail
+        var mini = imageProcessor.createCroppedStream(cropping, this.imageSize.mini.size); // mini
+        var midi = imageProcessor.createCroppedStream(cropping, this.imageSize.midi.size); // midi
+        var maxi = imageProcessor.createCroppedStream(cropping, this.imageSize.maxi.size); // maxi
 
         this.db.savePicture(requestData.id, attachmentData, readStream)
             .then(() => {
@@ -425,21 +429,17 @@ class User {
 
             //  save all other kinds of images after replying
             .then(() => {
-                readStream = imageProcessor.createCroppedStream(cropping, this.imageSize.thumb.size); // Thumbnail
                 attachmentData.name = this.imageSize.thumb.name;
-                return this.db.savePicture(requestData.id, attachmentData, readStream)
+                return this.db.savePicture(requestData.id, attachmentData, thumb)
             }).then(() => {
-                readStream = imageProcessor.createCroppedStream(cropping, this.imageSize.mini.size); // mini
                 attachmentData.name = this.imageSize.mini.name;
-                return this.db.savePicture(requestData.id, attachmentData, readStream)
+                return this.db.savePicture(requestData.id, attachmentData, mini)
             }).then(() => {
-                readStream = imageProcessor.createCroppedStream(cropping, this.imageSize.midi.size); // midi
                 attachmentData.name = this.imageSize.midi.name;
-                return this.db.savePicture(requestData.id, attachmentData, readStream)
+                return this.db.savePicture(requestData.id, attachmentData, midi)
             }).then(() => {
-                readStream = imageProcessor.createCroppedStream(cropping, this.imageSize.maxi.size); // maxi
                 attachmentData.name = this.imageSize.maxi.name;
-                return this.db.savePicture(requestData.id, attachmentData, readStream)
+                return this.db.savePicture(requestData.id, attachmentData, maxi)
             }).catch(err => log(err));
     };
 
