@@ -409,7 +409,7 @@ class User {
             return reply(this.boom.badRequest(imageProcessor.error))
         }
 
-        var pictureData = imageProcessor.createFileInformation('profile');
+        var pictureData = imageProcessor.createFileInformation('profile', 'users');
         var attachmentData = pictureData.attachmentData;
         attachmentData.name = this.imageSize.user.name;
 
