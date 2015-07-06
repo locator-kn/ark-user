@@ -421,7 +421,7 @@ class User {
 
         this.db.savePicture(requestData.id, attachmentData, readStream)
             .then(() => {
-                return this.db.updateDocumentWithoutCheck(requestData.id, {picture: pictureData.url}, 'location');
+                return this.db.updateDocumentWithoutCheck(requestData.id, {picture: pictureData.url});
             }).then((value:any) => {
                 value.imageLocation = pictureData.url;
                 reply(value).created(pictureData.url);
