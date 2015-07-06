@@ -105,7 +105,9 @@ class User {
                     if (size) {
                         reply().redirect('/api/v1/data/' + documentId + '/' + name + '.' + ext + '?size=' + size);
                     } else {
-                        reply().redirect('/api/v1/data/' + documentId + '/' + name + '.' + ext);
+                        // redirect to the biggest size
+                        reply().redirect('/api/v1/data/' + documentId + '/' + name + '.' + ext +
+                            '?size=' + this.imageSize.user.name);
 
                     }
                 },
@@ -123,10 +125,8 @@ class User {
                     },
                     query: this.joi.object().keys({
                         size: this.joi.string().valid([
-                            this.imageSize.mini.name,
-                            this.imageSize.midi.name,
-                            this.imageSize.maxi.name,
-                            this.imageSize.thumb.name
+                            this.imageSize.user.name,
+                            this.imageSize.userThumb.name
                         ])
                     }).unknown()
                 }
@@ -411,13 +411,11 @@ class User {
 
         var pictureData = imageProcessor.createFileInformation('profile');
         var attachmentData = pictureData.attachmentData;
+        attachmentData.name = this.imageSize.user.name;
 
         // crop it, scale it and return stream
-        var readStream = imageProcessor.createCroppedStream(stripped.cropping, {x: 200, y: 200});
-        var thumb = imageProcessor.createCroppedStream(cropping, this.imageSize.thumb.size); // Thumbnail
-        var mini = imageProcessor.createCroppedStream(cropping, this.imageSize.mini.size); // mini
-        var midi = imageProcessor.createCroppedStream(cropping, this.imageSize.midi.size); // midi
-        var maxi = imageProcessor.createCroppedStream(cropping, this.imageSize.maxi.size); // maxi
+        var readStream = imageProcessor.createCroppedStream(stripped.cropping, this.imageSize.user.size);
+        var thumb = imageProcessor.createCroppedStream(cropping, this.imageSize.userThumb.size); // Thumbnail
 
         this.db.savePicture(requestData.id, attachmentData, readStream)
             .then(() => {
@@ -429,17 +427,8 @@ class User {
 
             //  save all other kinds of images after replying
             .then(() => {
-                attachmentData.name = this.imageSize.thumb.name;
+                attachmentData.name = this.imageSize.userThumb.name;
                 return this.db.savePicture(requestData.id, attachmentData, thumb)
-            }).then(() => {
-                attachmentData.name = this.imageSize.mini.name;
-                return this.db.savePicture(requestData.id, attachmentData, mini)
-            }).then(() => {
-                attachmentData.name = this.imageSize.midi.name;
-                return this.db.savePicture(requestData.id, attachmentData, midi)
-            }).then(() => {
-                attachmentData.name = this.imageSize.maxi.name;
-                return this.db.savePicture(requestData.id, attachmentData, maxi)
             }).catch(err => log(err));
     };
 
