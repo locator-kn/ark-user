@@ -51,7 +51,7 @@ class User {
         });
 
         this._register(server, options);
-        initLogging(server)
+        initLogging(server);
         next();
     };
 
@@ -98,17 +98,13 @@ class User {
                 auth: false,
                 handler: (request, reply) => {
                     var documentId = request.params.userid;
-                    var name = request.params.name;
-                    var ext = request.params.ext;
                     var size = request.query.size;
 
-                    if (size) {
-                        reply().redirect('/api/v1/data/' + documentId + '/' + name + '.' + ext + '?size=' + size);
+                    if (!size) {
+                        // return biggest picture if no size is given
+                        return reply(this.db.getPicture(documentId, this.imageSize.user.name));
                     } else {
-                        // redirect to the biggest size
-                        reply().redirect('/api/v1/data/' + documentId + '/' + name + '.' + ext +
-                            '?size=' + this.imageSize.user.name);
-
+                        return reply(this.db.getPicture(documentId, size));
                     }
                 },
                 description: 'Get the preview picture of a user by id',
@@ -491,6 +487,7 @@ class User {
                     if (err) {
                         return reply(this.boom.badRequest(err));
                     }
+
                     var userSessionData = {
                         mail: lowerCaseMail,
                         _id: data.id
