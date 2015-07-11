@@ -150,7 +150,7 @@ class User {
                 handler: (request,reply) => {
 
                     this.data.uploadImage(request, 'user')
-                        .then(value => {
+                        .then((value:any) => {
                             return reply(value).created(value.imageLocation);
                         }).catch(reply);
 
@@ -385,61 +385,6 @@ class User {
             }
             reply(data);
         });
-    };
-
-    /**
-     * Get picture of user.
-     *
-     * @param request
-     * @param reply
-     */
-    getPicture = (request, reply) => {
-        // create file name
-        var file = request.params.name + '.' + request.params.ext;
-
-        // get file stream from database (no error handling, because there is none)
-        reply(this.db.getPicture(request.params.userid, file));
-    };
-
-    /**
-     * Function to save picture in database.
-     *
-     * @param request
-     * @param reply
-     */
-    private savePicture = (request, reply) => {
-
-        var stripped = this.imageUtil.image.stripHapiRequestObject(request);
-        var cropping = stripped.cropping;
-        var requestData = stripped.options;
-        requestData.id = request.auth.credentials._id;
-
-        var imageProcessor = this.imageUtil.image.processor(stripped.options);
-        if (imageProcessor.error) {
-            return reply(this.boom.badRequest(imageProcessor.error))
-        }
-
-        var pictureData = imageProcessor.createFileInformation('profile', 'users');
-        var attachmentData = pictureData.attachmentData;
-        attachmentData.name = this.imageSize.user.name;
-
-        // crop it, scale it and return stream
-        var readStream = imageProcessor.createCroppedStream(stripped.cropping, this.imageSize.user.size);
-        var thumb = imageProcessor.createCroppedStream(cropping, this.imageSize.userThumb.size); // Thumbnail
-
-        this.db.savePicture(requestData.id, attachmentData, readStream)
-            .then(() => {
-                return this.db.updateDocumentWithoutCheck(requestData.id, {picture: pictureData.url});
-            }).then((value:any) => {
-                value.imageLocation = pictureData.url;
-                reply(value).created(pictureData.url);
-            }).catch(reply)
-
-            //  save all other kinds of images after replying
-            .then(() => {
-                attachmentData.name = this.imageSize.userThumb.name;
-                return this.db.savePicture(requestData.id, attachmentData, thumb)
-            }).catch(err => log(err));
     };
 
     /**
