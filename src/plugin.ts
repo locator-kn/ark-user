@@ -18,7 +18,8 @@ class User {
     imageUtil:any;
     hoek:any;
     generatePassword:any;
-    imageSize:any
+    imageSize:any;
+    data:any;
 
     constructor() {
         this.register.attributes = {
@@ -47,6 +48,12 @@ class User {
 
         server.dependency('ark-mailer', (server, next) => {
             this.mailer = server.plugins['ark-mailer'];
+            next();
+        });
+
+        // set dependency to the database plugin
+        server.dependency('ark-staticdata', (server, next) => {
+            this.data = server.plugins['ark-staticdata'];
             next();
         });
 
@@ -140,7 +147,14 @@ class User {
                     allow: 'multipart/form-data',
                     maxBytes: 1048576 * 6 // 6MB  TODO: discuss real value
                 },
-                handler: this.savePicture,
+                handler: (request,reply) => {
+
+                    this.data.uploadImage(request, 'user')
+                        .then(value => {
+                            return reply(value).created(value.imageLocation);
+                        }).catch(reply);
+
+                },
                 description: 'Upload profile picture of a user',
                 notes: 'The picture will be streamed and attached to the document of this user',
                 tags: ['api', 'user'],
