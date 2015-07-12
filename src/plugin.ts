@@ -101,7 +101,7 @@ class User {
                 auth: false,
                 handler: (request, reply) => {
                     var documentId = request.params.userid;
-                    var size = request.query.size;
+                    var size = request.query.size || request.query.s;
 
                     if (!size) {
                         // return biggest picture if no size is given
@@ -126,6 +126,10 @@ class User {
                         size: this.joi.string().valid([
                             this.imageUtil.size.user.name,
                             this.imageUtil.size.userThumb.name
+                        ]),
+                        s: this.joi.string().valid([
+                            this.imageUtil.size.user.name,
+                            this.imageUtil.size.userThumb.name
                         ])
                     }).unknown()
                 }
@@ -143,7 +147,7 @@ class User {
                     allow: 'multipart/form-data',
                     maxBytes: 1048576 * 6 // 6MB
                 },
-                handler: (request,reply) => {
+                handler: (request, reply) => {
 
                     this.data.uploadImage(request, 'user')
                         .then((value:any) => {
