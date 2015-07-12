@@ -16,9 +16,7 @@ class User {
     mailer:any;
     uuid:any;
     imageUtil:any;
-    hoek:any;
     generatePassword:any;
-    imageSize:any;
     data:any;
 
     constructor() {
@@ -31,8 +29,6 @@ class User {
         this.bcrypt = require('bcrypt');
         this.uuid = require('node-uuid');
         this.imageUtil = require('locator-image-utility');
-        this.imageSize = require('locator-image-utility').size;
-        this.hoek = require('hoek');
         this.generatePassword = require('password-generator');
 
         this.initSchemas();
@@ -109,7 +105,7 @@ class User {
 
                     if (!size) {
                         // return biggest picture if no size is given
-                        return reply(this.db.getPicture(documentId, this.imageSize.user.name));
+                        return reply(this.db.getPicture(documentId, this.imageUtil.size.user.name));
                     } else {
                         return reply(this.db.getPicture(documentId, size));
                     }
@@ -128,8 +124,8 @@ class User {
                     },
                     query: this.joi.object().keys({
                         size: this.joi.string().valid([
-                            this.imageSize.user.name,
-                            this.imageSize.userThumb.name
+                            this.imageUtil.size.user.name,
+                            this.imageUtil.size.userThumb.name
                         ])
                     }).unknown()
                 }
@@ -145,7 +141,7 @@ class User {
                     output: 'stream',
                     parse: true,
                     allow: 'multipart/form-data',
-                    maxBytes: 1048576 * 6 // 6MB  TODO: discuss real value
+                    maxBytes: 1048576 * 6 // 6MB
                 },
                 handler: (request,reply) => {
 
@@ -449,7 +445,8 @@ class User {
 
                     var userSessionData = {
                         mail: lowerCaseMail,
-                        _id: data.id
+                        _id: data.id,
+                        strategy: 'default'
                     };
                     request.auth.session.set(userSessionData);
                     reply(data);
