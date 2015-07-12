@@ -199,7 +199,6 @@ class User {
             method: 'POST',
             path: '/users/bulk',
             config: {
-                auth: false, // will be handled inside handler
                 handler: this.bulkCreateUser,
                 description: 'Create/Register a payload full of users',
                 notes: 'A new default location will be created for each user and they will get a mail with new credentials',
@@ -310,7 +309,7 @@ class User {
     };
 
     bulkCreateUser = (request, reply) => {
-        if (!request.auth.credentials.isAdmin) {
+        if (!request.auth.credentials || !request.auth.credentials.isAdmin) {
             return reply(this.boom.unauthorized());
         }
 
