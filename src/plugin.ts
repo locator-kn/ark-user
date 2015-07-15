@@ -93,7 +93,6 @@ class User {
         });
 
         // get picture of a user
-        // TODO: redirect to special route which handles all pictures
         server.route({
             method: 'GET',
             path: '/users/{userid}/{name}.{ext}',
@@ -295,7 +294,6 @@ class User {
      * @param reply
      */
     getUsers = (request, reply) => {
-        //TODO: limit number of result
         if (request.auth.credentials.isAdmin) {
             this.db.getUsers((err, data) => {
                 if (err) {
@@ -460,7 +458,7 @@ class User {
                         uuid: newUser.uuid
                     });
 
-                    // create a default location TODO: (and trip?)
+                    // create a default location
                     this.db.addDefaultLocationToUser(data.id)
                         .then(value => console.log('default location added', value))
                         .catch(err => console.log('error adding default location', err));
@@ -530,7 +528,6 @@ class User {
             if (err) {
                 return reply(this.boom.badRequest(err));
             }
-            //TODO: send verify  mail and keep old mail address, till new mail is verified
             reply(data);
         });
     };
