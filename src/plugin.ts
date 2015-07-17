@@ -664,10 +664,22 @@ class User {
                 this.db.saveMessage(message, (err, data) => {
 
                     if (err) {
-                        logError('Error sending chat welcome message' + err)
+                        return logError('Error sending chat welcome message' + err)
                     }
+                    this.db.saveMessage(message2, (err, data) => {
 
-                    log('Chat message send')
+                        if (err) {
+                            return logError('Error sending chat welcome message' + err)
+                        }
+                        this.db.saveMessage(message3, (err, data) => {
+
+                            if (err) {
+                                return logError('Error sending chat welcome message' + err)
+                            }
+
+                            log('Chat messages send')
+                        });
+                    });
                 });
             })
             .catch()
