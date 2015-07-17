@@ -32,6 +32,11 @@ gulp.task('ts', function() {
     ]);
 });
 
-gulp.task('default', ['ts'], function() {
+gulp.task('chatMessage', function() {
+    return gulp.src('src/util/chatMessage.json')
+        .pipe(gulp.dest('lib/js/util'))
+});
+
+gulp.task('default', ['ts', 'chatMessage'], function() {
 
 });
