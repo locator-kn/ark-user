@@ -3,7 +3,7 @@ export interface IRegister {
     attributes?: any;
 }
 
-import {initLogging, log} from './util/logging'
+import {initLogging, log, logError} from './util/logging'
 
 export default
 class User {
@@ -312,60 +312,83 @@ class User {
         }
 
         var users = request.payload;
+        var i = users.length;
 
-        users.forEach(user => {
-            var lowerCaseMail = user.mail.toLowerCase();
-            this.db.isMailAvailable(lowerCaseMail).then(() => {
+        // delay creating the user
+        setInterval(() => {
+            if (i <= 0) {
+                return;
+            }
+            i = i - 1;
 
-                // generate password
-                var newPassword = this.generatePassword(12, false);
+            // capitalize first character of name
+            var name = users[i].name;
+            users[i].name = name.charAt(0).toUpperCase() + name.slice(1);
 
-                this.getPasswordHash(newPassword, (err, hash) => {
-                    if (err) {
-                        return reply(this.boom.badRequest(err));
-                    }
+            // create the user
+            this.bulkcreateSingleUser(users[i]);
 
+        }, 1000);
 
-                    var newUser = {
-                        password: hash,
-                        strategy: 'default',
-                        uuid: this.uuid.v4(),
-                        verified: false,
-                        type: 'user',
-                        birthdate: '',
-                        residence: '',
-                        description: '',
-                        mail: lowerCaseMail,
-                        surname: '',
-                        name: user.name
-                    };
-
-                    // create the actual user
-                    this.db.createUser(newUser, (err, data) => {
-                        if (err) {
-                            console.error('creating new user ', newUser, 'failed: ', err);
-                            return;
-                        }
-
-                        console.log('new User ', newUser, ' created');
-
-
-                        this.mailer.sendRegistrationMailWithPassword({
-                            name: newUser.name,
-                            mail: newUser.mail,
-                            password: newPassword
-                        });
-
-                        this.db.addDefaultLocationToUser(data.id)
-                            .then(value => console.log('default location added', value))
-                            .catch(err => console.log('error adding default location', err));
-                    });
-                });
-            }).catch(err => console.log('error', err));
-
-        });
 
         return reply('ok');
+
+    };
+
+    private bulkcreateSingleUser = (user) => {
+        var lowerCaseMail = user.mail.toLowerCase();
+        this.db.isMailAvailable(lowerCaseMail).then(() => {
+
+            // generate password
+            var newPassword = this.generatePassword(12, false);
+
+            this.getPasswordHash(newPassword, (err, hash) => {
+                if (err) {
+                    return logError('Error generating hash: ' + err)
+                }
+
+
+                var newUser = {
+                    password: hash,
+                    strategy: 'default',
+                    uuid: this.uuid.v4(),
+                    verified: false,
+                    type: 'user',
+                    birthdate: '',
+                    residence: '',
+                    description: '',
+                    mail: lowerCaseMail,
+                    surname: '',
+                    name: user.name
+                };
+
+                // create the actual user
+                this.db.createUser(newUser, (err, data) => {
+                    if (err) {
+                        console.error('creating new user ', newUser, 'failed: ', err);
+                        return;
+                    }
+
+                    console.log('new User ', newUser, ' created');
+
+                    // send mail
+                    this.mailer.sendRegistrationMailWithPassword({
+                        name: newUser.name,
+                        mail: newUser.mail,
+                        password: newPassword
+                    });
+
+                    // add default location
+                    this.db.addDefaultLocationToUser(data.id)
+                        .then(value => console.log('default location added', value))
+                        .catch(err => console.log('error adding default location', err));
+
+                    // send slack notif
+                    this.sendSlackNotification(newUser);
+                });
+            });
+        }).catch(err => logError('error' + err));
+
 
     };
 
@@ -543,6 +566,10 @@ class User {
             request.auth.session.clear();
             reply(value);
         }).catch(reply)
+
+    };
+
+    private sendSlackNotification = (user) => {
 
     };
 
