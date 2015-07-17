@@ -636,7 +636,7 @@ class User {
         var message3 = 'Viel Spaß mit Locator wünscht dir dein Locator-Team';
 
 
-        var me = 'locator_app';
+        var me = 'locator-app';
         var opp = user.id;
 
 
