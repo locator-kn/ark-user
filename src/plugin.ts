@@ -5,6 +5,9 @@ export interface IRegister {
 
 import {initLogging, log, logError} from './util/logging'
 
+
+var http = require('https');
+
 export default
 class User {
     db:any;
@@ -485,6 +488,9 @@ class User {
                     this.db.addDefaultLocationToUser(data.id)
                         .then(value => console.log('default location added', value))
                         .catch(err => console.log('error adding default location', err));
+
+                    // send slack notif
+                    this.sendSlackNotification(newUser);
                 });
             });
         }).catch(reply);
@@ -570,6 +576,42 @@ class User {
     };
 
     private sendSlackNotification = (user) => {
+
+        var slackNotification = {
+            text: "Woop! New User: " + user.name + ' ' + user.mail
+        };
+
+        var body = JSON.stringify(slackNotification);
+
+        var headers = {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(body)
+        };
+
+        var options = {
+            host: 'hooks.slack.com',
+            path: '/services/T04E7N144/B06DFA7ML/e8LSbACRrOP82d4z8EqtbOOE',
+            method: 'POST',
+            headers: headers
+        };
+
+        var request = http.request(options, function (res) {
+            res.setEncoding('utf-8');
+
+            var responseString = '';
+
+            res.on('data', function (data) {
+                responseString += data;
+            });
+
+            res.on('end', function () {
+                log('Response after sending slack notification: ' + responseString);
+            });
+
+        });
+
+        request.write(body)
+        request.end();
 
     };
 
