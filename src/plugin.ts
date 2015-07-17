@@ -7,6 +7,8 @@ import {initLogging, log, logError} from './util/logging'
 
 
 var http = require('https');
+var fse = require('fs-extra');
+var path = require('path');
 
 export default
 class User {
@@ -624,19 +626,7 @@ class User {
     //send initial chat message
     private sendChatWelcomeMessage = (user) => {
 
-        var message1 = 'Herzlich Willkommen im Chat von Locator\n' +
-            'Hier kannst du mit anderen Locatorn quatschen, egal ob du deren Trips machen willst oder ' +
-            'jemand deinen Trip macht. Jeder Tripkontakt taucht in deinem Chat auf.\n' +
-            'Lass dir von anderen, ihre Lieblingslocations zeigen oder sei selbst ein Guide für deine Stadt.';
-
-        var message2 =  'Übrigens: Wenn du uns Feedback zu Locator geben willst, dich etwas stört oder du ' +
-            'Verbesserungsvorschläge hast, dann schreib uns ruhig direkt hier an. Wir haben immer ein ' +
-            'offenes Ohr für deine Vorschläge und wollen Locator noch besser machen. ';
-
-
-        var message3 = 'Viel Spaß mit Locator wünscht dir dein Locator-Team';
-
-
+        var messages = fse.readJsonSync(path.resolve(__dirname, './util/chatMessage.json'), 'utf-8');
 
         var me = 'locator-app';
         var opp = user.id;
@@ -658,7 +648,7 @@ class User {
                     conversation_id: value.id,
                     from: 'locator_app',
                     to: user.id,
-                    message: message1,
+                    message: messages.message1,
                     timestamp: Date.now(),
                     type: 'message'
                 };
@@ -668,13 +658,13 @@ class User {
                     if (err) {
                         return logError('Error sending chat welcome message' + err)
                     }
-                    message.message = message2;
+                    message.message = messages.message2;
                     this.db.saveMessage(message, (err, data) => {
 
                         if (err) {
                             return logError('Error sending chat welcome message' + err)
                         }
-                        message.message = message3;
+                        message.message = messages.message3;
                         this.db.saveMessage(message, (err, data) => {
 
                             if (err) {
