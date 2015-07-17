@@ -11,5 +11,17 @@ export function log(logging:string) {
         return;
     }
 
-    server.log(logging);
+    server.log(['ark-user'],logging);
 }
+
+
+
+export function logError(logging:string) {
+    if (!server) {
+        console.error('Server not initialized for logging');
+        return;
+    }
+
+    server.log(['ark-user','Error'],logging);
+}
+
