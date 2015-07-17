@@ -32,11 +32,11 @@ gulp.task('ts', function() {
     ]);
 });
 
-gulp.task('chatMessage', function() {
-    return gulp.src('src/util/chatMessage.json')
-        .pipe(gulp.dest('lib/js/util'))
+gulp.task('staticdata', function() {
+    return gulp.src('src/staticdata/**/*')
+        .pipe(gulp.dest('lib/js/staticdata'))
 });
 
-gulp.task('default', ['ts', 'chatMessage'], function() {
+gulp.task('default', ['ts', 'staticdata'], function() {
 
 });
