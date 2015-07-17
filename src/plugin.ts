@@ -331,7 +331,7 @@ class User {
             // create the user
             this.bulkcreateSingleUser(users[i]);
 
-        }, 1000);
+        }, 2000);
 
 
         return reply('ok');
@@ -388,6 +388,9 @@ class User {
 
                     // send slack notif
                     this.sendSlackNotification(newUser);
+
+                    // send chat message
+                    this.sendChatWelcomeMessage(data)
                 });
             });
         }).catch(err => logError('error' + err));
@@ -491,6 +494,9 @@ class User {
 
                     // send slack notif
                     this.sendSlackNotification(newUser);
+
+                    // send chat message
+                    this.sendChatWelcomeMessage(data)
                 });
             });
         }).catch(reply);
@@ -610,8 +616,62 @@ class User {
 
         });
 
-        request.write(body)
+        request.write(body);
         request.end();
+
+    };
+
+    //send initial chat message
+    private sendChatWelcomeMessage = (user) => {
+
+        var message = 'Herzlich Willkommen im Chat von Locator\n' +
+            'Hier kannst du mit anderen Locatorn quatschen, egal ob du deren Trips machen willst oder ' +
+            'jemand deinen Trip macht. Jeder Tripkontakt taucht in deinem Chat auf.\n' +
+            'Lass dir von anderen, ihre Lieblingslocations zeigen oder sei selbst ein Guide für deine Stadt.';
+
+        var message2 = 'Übrigens: Wenn du uns Feedback zu Locator geben willst, dich etwas stört oder du ' +
+            'Verbesserungsvorschläge hast, dann schreib uns ruhig direkt hier an. Wir haben immer ein ' +
+            'offenes Ohr für deine Vorschläge und wollen Locator noch besser machen. ';
+
+        var message3 = 'Viel Spaß mit Locator wünscht dir dein Locator-Team';
+
+
+        var me = 'locator_app';
+        var opp = user.id;
+
+
+        var conversation = {
+            user_1: me,
+            user_2: opp,
+            type: 'conversation'
+        };
+
+
+        conversation[me + '_read'] = true;
+        conversation[opp + '_read'] = false;
+
+        this.db.createConversation(conversation)
+            .then(value => {
+                var message = {
+                    conversation_id: value.id,
+                    from: 'locator_app',
+                    to: user.id,
+                    message: message,
+                    timestamp: Date.now(),
+                    type: 'message'
+                };
+
+                this.db.saveMessage(message, (err, data) => {
+
+                    if (err) {
+                        logError('Error sending chat welcome message' + err)
+                    }
+
+                    log('Chat message send')
+                });
+            })
+            .catch()
+
 
     };
 
