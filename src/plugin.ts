@@ -626,7 +626,7 @@ class User {
     //send initial chat message
     private sendChatWelcomeMessage = (user) => {
 
-        var messages = fse.readJsonSync(path.resolve(__dirname, './util/chatMessage.json'), 'utf-8');
+        var messages = fse.readJsonSync(path.resolve(__dirname, './staticdata/chatMessage.json'), 'utf-8');
 
         var me = 'locator-app';
         var opp = user.id;
