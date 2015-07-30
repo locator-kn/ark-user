@@ -343,18 +343,17 @@ class User {
 
     private bulkcreateSingleUser = (user) => {
         var lowerCaseMail = user.mail.toLowerCase();
-        this.db.isMailAvailable(lowerCaseMail).then(() => {
+        var newPassword;
 
-            // generate password
-            var newPassword = this.generatePassword(12, false);
-
-            this.getPasswordHash(newPassword, (err, hash) => {
-                if (err) {
-                    return logError('Error generating hash: ' + err)
-                }
-
-
-                var newUser = {
+        // check first if mail is already taken
+        this.db.isMailAvailable(lowerCaseMail)
+            .then(() => {
+                // generate password and hash
+                newPassword = this.generatePassword(12, false);
+                return this._getPasswordHash(newPassword)
+            }).then(hash => {
+                // create the actual user
+                return this.db.createUser({
                     password: hash,
                     strategy: 'default',
                     uuid: this.uuid.v4(),
@@ -366,39 +365,30 @@ class User {
                     mail: lowerCaseMail,
                     surname: '',
                     name: user.name
-                };
+                })
+            }).then(data => {
 
-                // create the actual user
-                this.db.createUser(newUser, (err, data) => {
-                    if (err) {
-                        console.error('creating new user ', newUser, 'failed: ', err);
-                        return;
-                    }
-
-                    console.log('new User ', newUser, ' created');
-
-                    // send mail
-                    this.mailer.sendRegistrationMailWithPassword({
-                        name: newUser.name,
-                        mail: newUser.mail,
-                        password: newPassword
-                    });
-
-                    // add default location
-                    this.db.addDefaultLocationToUser(data.id)
-                        .then(value => console.log('default location added', value))
-                        .catch(err => console.log('error adding default location', err));
-
-                    // send slack notif
-                    this.sendSlackNotification(newUser);
-
-                    // send chat message
-                    this.sendChatWelcomeMessage(data)
+                // send welcome mail
+                this.mailer.sendRegistrationMailWithPassword({
+                    name: user.name,
+                    mail: lowerCaseMail,
+                    password: newPassword
                 });
-            });
-        }).catch(err => logError('error' + err));
 
+                // add default location
+                this.db.addDefaultLocationToUser(data.id)
+                    .then(value => console.log('default location added', value))
+                    .catch(err => console.log('error adding default location', err));
 
+                // send slack notif
+                this.sendSlackNotification({
+                    name: user.name,
+                    mail: lowerCaseMail,
+                });
+
+                // send chat message
+                this.sendChatWelcomeMessage(data)
+            }).catch(err => logError('error' + err));
     };
 
     /**
@@ -409,12 +399,18 @@ class User {
      */
     private createUser = (request, reply) => {
         var lowerCaseMail = request.payload.mail.toLowerCase();
-        this.db.isMailAvailable(lowerCaseMail).then(user => {
+        var newUser = {};
 
-            this.getPasswordHash(request.payload.password, (err, hash) => {
-                if (err) {
-                    return reply(this.boom.badRequest(err));
-                }
+        // first check if mail is not taken
+        this.db.isMailAvailable(lowerCaseMail)
+            .then(() => {
+                // generate Password hash
+                return this._getPasswordHash(request.payload.password)
+            }).catch(err => {
+                // password hash generation failed
+                logError('password hash generation failed' + err);
+                return Promise.reject(this.boom.badRequest('unable to create password hash'))
+            }).then(hash => {
 
                 // extract possiblie surname
                 if (!request.payload.surname) {
@@ -425,8 +421,7 @@ class User {
                     }
                 }
 
-
-                var newUser = {
+                newUser = {
                     password: hash,
                     strategy: 'default',
                     uuid: this.uuid.v4(),
@@ -441,39 +436,35 @@ class User {
                 };
 
                 // create the actual user
-                this.db.createUser(newUser, (err, data) => {
-                    if (err) {
-                        return reply(this.boom.badRequest(err));
-                    }
+                return this.db.createUser(newUser)
+            }).then(data => {
 
-                    var userSessionData = {
-                        mail: lowerCaseMail,
-                        _id: data.id,
-                        strategy: 'default'
-                    };
-                    request.auth.session.set(userSessionData);
-                    reply(data);
+                var userSessionData = {
+                    mail: lowerCaseMail,
+                    _id: data.id,
+                    strategy: 'default'
+                };
+                request.auth.session.set(userSessionData);
+                reply(data);
 
 
-                    this.mailer.sendRegistrationMail({
-                        name: newUser.name,
-                        mail: newUser.mail,
-                        uuid: newUser.uuid
-                    });
-
-                    // create a default location
-                    this.db.addDefaultLocationToUser(data.id)
-                        .then(value => console.log('default location added', value))
-                        .catch(err => console.log('error adding default location', err));
-
-                    // send slack notif
-                    this.sendSlackNotification(newUser);
-
-                    // send chat message
-                    this.sendChatWelcomeMessage(data)
+                this.mailer.sendRegistrationMail({
+                    name: newUser.name,
+                    mail: newUser.mail,
+                    uuid: newUser.uuid
                 });
-            });
-        }).catch(reply);
+
+                // create a default location
+                this.db.addDefaultLocationToUser(data.id)
+                    .then(value => console.log('default location added', value))
+                    .catch(err => console.log('error adding default location', err));
+
+                // send slack notif
+                this.sendSlackNotification(newUser);
+
+                // send chat message
+                this.sendChatWelcomeMessage(data)
+            }).catch(reply);
     };
 
 
