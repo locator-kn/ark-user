@@ -492,11 +492,30 @@ class User {
         });
     };
 
-    getPasswordHash(password:string, callback) {
-        this.bcrypt.genSalt(10, (err, salt) => {
-            this.bcrypt.hash(password, salt, callback);
-        });
-    }
+
+    /**
+     * Returns a promise and when resolved the hash to the corresponding password
+     * @param password
+     * @private
+     */
+    _getPasswordHash = (password:string) => {
+        return Promise((resolve, reject) => {
+
+            this.bcrypt.genSalt(10, (err, salt) => {
+
+                if (err) {
+                    return reject(err);
+                }
+                this.bcrypt.hash(password, salt, (err, hash) => {
+
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve(hash)
+                });
+            });
+        })
+    };
 
     /**
      * Update user mail of specific user.
