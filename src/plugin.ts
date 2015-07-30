@@ -323,7 +323,7 @@ class User {
         // delay creating the user
         var intervalID = setInterval(() => {
             if (i <= 0) {
-                clearInterval(intervalID)
+                clearInterval(intervalID);
                 return;
             }
             i = i - 1;
@@ -596,7 +596,7 @@ class User {
 
     //send initial chat message
     private sendChatWelcomeMessage = (user) => {
-        var messageDocument = {};
+        var messageDocument:any = {};
         var defaultMessages = fse.readJsonSync(path.resolve(__dirname, './staticdata/chatMessage.json'), 'utf-8');
 
         var me = 'locator-app';
