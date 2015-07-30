@@ -408,6 +408,9 @@ class User {
                 // generate Password hash
                 return this._getPasswordHash(request.payload.password)
             }).catch(err => {
+                if (err.isBoom) {
+                    return Promise.reject(err)
+                }
                 // password hash generation failed
                 logError('password hash generation failed' + err);
                 return Promise.reject(this.boom.badRequest('unable to create password hash'))
