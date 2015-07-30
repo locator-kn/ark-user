@@ -300,12 +300,7 @@ class User {
      */
     getUsers = (request, reply) => {
         if (request.auth.credentials.isAdmin) {
-            this.db.getUsers((err, data) => {
-                if (err) {
-                    return reply(this.boom.wrap(err, 400));
-                }
-                reply(data);
-            });
+            return reply(this.db.getUsers());
         } else {
             return reply(this.boom.unauthorized());
         }
