@@ -227,7 +227,9 @@ class User {
             method: 'PUT',
             path: '/users/my/profile',
             config: {
-                handler: this.updateUser,
+                handler: (request, reply) => {
+                    reply(this.db.updateUser(request.auth.credentials._id, request.payload))
+                },
                 description: 'Update user information',
                 notes: 'Update one or more properties of the user. If you want to change the password or mail,' +
                 'use PUT /users/my/[password or mail]',
@@ -474,20 +476,6 @@ class User {
         }).catch(reply);
     };
 
-    /**
-     * update user in database.
-     *
-     * @param request
-     * @param reply
-     */
-    private updateUser = (request, reply) => {
-        this.db.updateUser(request.auth.credentials._id, request.payload, (err, data) => {
-            if (err) {
-                return reply(this.boom.badRequest(err));
-            }
-            reply(data);
-        });
-    };
 
     /**
      * Update user password of specific user.
