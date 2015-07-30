@@ -82,7 +82,9 @@ class User {
             path: '/users/{userid}',
             config: {
                 auth: false,
-                handler: this.getUserById,
+                handler: (request, reply) => {
+                    return reply(this.db.getUserById(request.params.userid));
+                },
                 description: 'Get particular user by user id',
                 notes: 'sample call: /users/124239845725',
                 tags: ['api', 'user'],
@@ -173,7 +175,9 @@ class User {
             method: 'GET',
             path: '/users/me',
             config: {
-                handler: this.getMe,
+                handler: (request, reply) => {
+                    return reply(this.db.getUserById(request.auth.credentials._id));
+                },
                 description: 'Get all information about current user',
                 notes: 'Identification about current logged in user is get from session parameter "loggedInUser"',
                 tags: ['api', 'user']
@@ -396,36 +400,6 @@ class User {
     };
 
     /**
-     * Handler function to get user by id.
-     *
-     * @param request
-     * @param reply
-     */
-    getUserById = (request, reply) => {
-        this.db.getUserById(request.params.userid, (err, data) => {
-            if (err) {
-                return reply(this.boom.wrap(err, 400));
-            }
-            reply(data);
-        });
-    };
-
-    /**
-     * Get current logged on user.
-     *
-     * @param request
-     * @param reply
-     */
-    private getMe = (request, reply) => {
-        this.db.getUserById(request.auth.credentials._id, (err, data) => {
-            if (err) {
-                return reply(this.boom.badRequest(err));
-            }
-            reply(data);
-        })
-    };
-
-    /**
      * Function to create User.
      *
      * @param request
@@ -477,6 +451,7 @@ class User {
                     };
                     request.auth.session.set(userSessionData);
                     reply(data);
+
 
                     this.mailer.sendRegistrationMail({
                         name: newUser.name,
