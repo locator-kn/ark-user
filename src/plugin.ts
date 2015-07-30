@@ -488,12 +488,7 @@ class User {
             if (err) {
                 return reply(this.boom.badRequest(err));
             }
-            this.db.updateUserPassword(request.auth.credentials._id, hash, (err, data) => {
-                if (err) {
-                    return reply(this.boom.badRequest(err));
-                }
-                reply(data);
-            });
+            return reply(this.db.updateUserPassword(request.auth.credentials._id, hash));
         });
     };
 
