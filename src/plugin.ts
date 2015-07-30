@@ -5,7 +5,7 @@ export interface IRegister {
 
 import {initLogging, log, logError} from './util/logging'
 
-
+declare var Promise;
 var http = require('https');
 var fse = require('fs-extra');
 var path = require('path');
@@ -321,8 +321,9 @@ class User {
         var i = users.length;
 
         // delay creating the user
-        setInterval(() => {
+        var intervalID = setInterval(() => {
             if (i <= 0) {
+                clearInterval(intervalID)
                 return;
             }
             i = i - 1;
@@ -399,7 +400,7 @@ class User {
      */
     private createUser = (request, reply) => {
         var lowerCaseMail = request.payload.mail.toLowerCase();
-        var newUser = {};
+        var newUser:any = {};
 
         // first check if mail is not taken
         this.db.isMailAvailable(lowerCaseMail)
@@ -494,7 +495,7 @@ class User {
      * @private
      */
     _getPasswordHash = (password:string) => {
-        return Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
 
             this.bcrypt.genSalt(10, (err, salt) => {
 
