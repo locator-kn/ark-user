@@ -484,12 +484,16 @@ class User {
      * @param reply
      */
     private updateUserPassword = (request, reply) => {
-        this.getPasswordHash(request.payload.password, (err, hash) => {
-            if (err) {
-                return reply(this.boom.badRequest(err));
-            }
-            return reply(this.db.updateUserPassword(request.auth.credentials._id, hash));
-        });
+        this._getPasswordHash(request.payload.password)
+            .then(hash => {
+
+                return reply(this.db.updateUserPassword(request.auth.credentials._id, hash));
+            }).catch(err => {
+                // password hash generation failed
+                logError('password hash generation failed' + err);
+                return reply(this.boom.badRequest('unable to create password hash'));
+            })
+
     };
 
 
