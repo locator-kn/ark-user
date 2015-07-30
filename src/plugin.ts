@@ -596,8 +596,8 @@ class User {
 
     //send initial chat message
     private sendChatWelcomeMessage = (user) => {
-
-        var messages = fse.readJsonSync(path.resolve(__dirname, './staticdata/chatMessage.json'), 'utf-8');
+        var messageDocument = {};
+        var defaultMessages = fse.readJsonSync(path.resolve(__dirname, './staticdata/chatMessage.json'), 'utf-8');
 
         var me = 'locator-app';
         var opp = user.id;
@@ -608,46 +608,27 @@ class User {
             user_2: opp,
             type: 'conversation'
         };
-
-
         conversation[me + '_read'] = true;
         conversation[opp + '_read'] = false;
 
         this.db.createConversation(conversation)
             .then(value => {
-                var message = {
+                messageDocument = {
                     conversation_id: value.id,
                     from: 'locator_app',
                     to: user.id,
-                    message: messages.message1,
+                    message: defaultMessages.message1,
                     timestamp: Date.now(),
                     type: 'message'
                 };
-
-                this.db.saveMessage(message, (err, data) => {
-
-                    if (err) {
-                        return logError('Error sending chat welcome message' + err)
-                    }
-                    message.message = messages.message2;
-                    this.db.saveMessage(message, (err, data) => {
-
-                        if (err) {
-                            return logError('Error sending chat welcome message' + err)
-                        }
-                        message.message = messages.message3;
-                        this.db.saveMessage(message, (err, data) => {
-
-                            if (err) {
-                                return logError('Error sending chat welcome message' + err)
-                            }
-
-                            log('Chat messages send')
-                        });
-                    });
-                });
-            })
-            .catch()
+                return this.db.saveMessage(messageDocument)
+            }).then(() => {
+                messageDocument.message = defaultMessages.message2;
+                return this.db.saveMessage(messageDocument)
+            }).then(() => {
+                messageDocument.message = defaultMessages.message3;
+                this.db.saveMessage(messageDocument)
+            }).catch(err => logError('error while sending chat messages' + err))
 
 
     };
