@@ -532,12 +532,7 @@ class User {
             verified: false
         };
 
-        this.db.updateUserMail(request.auth.credentials._id, newMail, (err, data) => {
-            if (err) {
-                return reply(this.boom.badRequest(err));
-            }
-            reply(data);
-        });
+        return reply(this.db.updateUserMail(request.auth.credentials._id, newMail));
     };
 
     /**
