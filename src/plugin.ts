@@ -484,6 +484,9 @@ class User {
 
                 return reply(this.db.updateUserPassword(request.auth.credentials._id, hash));
             }).catch(err => {
+                if (err.isBoom) {
+                    return reply(err);
+                }
                 // password hash generation failed
                 logError('password hash generation failed' + err);
                 return reply(this.boom.badRequest('unable to create password hash'));
