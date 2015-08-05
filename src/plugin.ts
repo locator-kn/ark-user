@@ -361,21 +361,27 @@ class User {
 
             // send slack notif
             this.sendSlackNotification(message.user);
-
             return next(null, {ok: true});
         });
 
         server.seneca.add({send: 'registrationMail'}, (message, next)=> {
 
             var newUser = message.user;
-
             this.mailer.sendRegistrationMail({
                 name: newUser.name,
                 mail: newUser.mail,
                 uuid: newUser.uuid
             });
+            return next(null, {ok: true});
+        });
 
+        server.seneca.add({send: 'sendRegistrationMailWithoutUuid'}, (message, next)=> {
 
+            var newUser = message.user;
+            this.mailer.sendRegistrationMailWithoutUuid({
+                name: newUser.name,
+                mail: newUser.mail,
+            });
             return next(null, {ok: true});
         });
 
@@ -383,7 +389,6 @@ class User {
 
             // send chat message
             this.sendChatWelcomeMessage(message.user);
-
             return next(null, {ok: true});
         });
 
@@ -538,15 +543,14 @@ class User {
                         return reply(err)
                     }
 
-                    var userSessionData = {
+                    // set sessiondata
+                    request.auth.session.set({
                         mail: newUser.mail,
                         _id: res.id,
                         strategy: 'default'
-                    };
+                    });
 
-                    request.auth.session.set(userSessionData);
                     return reply(res);
-
                 });
 
             }).catch(reply);
