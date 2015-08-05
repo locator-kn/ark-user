@@ -308,7 +308,7 @@ class User {
 
         // Add a Seneca action
 
-        server.seneca.add({create: 'user'}, function (message, next) {
+        server.seneca.add({create: 'user'}, (message, next)  => {
             var newUser = message.user;
 
             // create the actual user
@@ -696,16 +696,16 @@ class User {
             headers: headers
         };
 
-        var request = http.request(options, function (res) {
+        var request = http.request(options, (res) => {
             res.setEncoding('utf-8');
 
             var responseString = '';
 
-            res.on('data', function (data) {
+            res.on('data', (data) => {
                 responseString += data;
             });
 
-            res.on('end', function () {
+            res.on('end', ()  => {
                 log('Response after sending slack notification: ' + responseString);
             });
 
