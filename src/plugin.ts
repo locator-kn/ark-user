@@ -301,20 +301,10 @@ class User {
 
 
     _registerSeneca = (server, options) => {
-        var id = 0;
 
         // Add a Seneca action
 
-        var id = 0;
         server.seneca.add({create: 'user'}, function (message, next) {
-
-
-            return next(null, {id: ++id});
-        });
-
-
-        server.seneca.add({create: 'user', strategy: 'default'}, (message, next) => {
-
             var newUser = message.user;
 
             // create the actual user
@@ -329,32 +319,68 @@ class User {
                     };
                     next(null, res);
 
-
-                    server.seneca.act({send: 'registrationMail', user: newUser});
+                    // always add a default location to a user
+                    server.seneca.act({add: 'defaultLocation', user: newUser});
                     server.seneca.act({send: 'slackNofification', user: newUser});
                     server.seneca.act({send: 'chatWelcomeMessage', user: newUser});
 
 
-                    // create a default location
-                    this.db.addDefaultLocationToUser(data.id)
-                        .then(value => console.log('default location added', value))
-                        .catch(err => console.log('error adding default location', err));
+                }).catch(next);
+        });
 
 
-                }).catch(err => next(null, err));
+        server.seneca.add({create: 'user', strategy: 'default'}, (message, next) => {
+
+            var newUser = message.user;
+
+            server.seneca.act({create: 'user', user: newUser}, (err, res) => {
+
+                next(err, res);
+
+                if (err) {
+                    return;
+                }
+
+                // async call other microservices
+                server.seneca.act({send: 'registrationMail', user: newUser});
+            });
+
 
         });
 
         server.seneca.add({create: 'user', strategy: 'facebook'}, (message, next) => {
 
+            var newUser = message.user;
 
-            return next(null, {res: message.strategy});
+            server.seneca.act({create: 'user', user: newUser}, (err, res) => {
+
+                next(err, res);
+
+                if (err) {
+                    return;
+                }
+
+                // async call other microservices
+                server.seneca.act({send: 'sendRegistrationMailWithoutUuid', user: newUser});
+            });
         });
 
         server.seneca.add({create: 'user', strategy: 'google'}, (message, next)=> {
 
 
-            return next(null, {res: message.strategy});
+            var newUser = message.user;
+
+            server.seneca.act({create: 'user', user: newUser}, (err, res) => {
+
+                next(err, res);
+
+                if (err) {
+                    return;
+                }
+
+                // async call other microservices
+                server.seneca.act({send: 'sendRegistrationMailWithoutUuid', user: newUser});
+            });
         });
 
         server.seneca.add({send: 'slackNofification'}, (message, next)=> {
@@ -389,6 +415,15 @@ class User {
 
             // send chat message
             this.sendChatWelcomeMessage(message.user);
+            return next(null, {ok: true});
+        });
+
+        server.seneca.add({add: 'defaultLocation'}, (message, next)=> {
+
+            // create a default location
+            this.db.addDefaultLocationToUser(message.user.id)
+                .then(value => console.log('default location added', value))
+                .catch(err => console.log('error adding default location', err));
             return next(null, {ok: true});
         });
 
