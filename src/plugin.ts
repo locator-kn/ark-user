@@ -323,9 +323,10 @@ class User {
                     };
                     next(null, res);
 
-                    // always add a default location to a user
-                    server.seneca.act({add: 'defaultLocation', user: newUser});
+                    newUser.id = data.id;
+
                     server.seneca.act({send: 'slackNofification', user: newUser});
+                    server.seneca.act({add: 'defaultLocation', user: newUser});
                     server.seneca.act({send: 'chatWelcomeMessage', user: newUser});
 
 
@@ -417,6 +418,10 @@ class User {
 
         server.seneca.add({send: 'chatWelcomeMessage'}, (message, next)=> {
 
+            if (!message.user || !message.user.id) {
+                return next({error: 'user or id needs to be defined'})
+            }
+
             // send chat message
             this.sendChatWelcomeMessage(message.user);
             return next(null, {ok: true});
@@ -424,11 +429,13 @@ class User {
 
         server.seneca.add({add: 'defaultLocation'}, (message, next)=> {
 
-            // create a default location
+            if (!message.user || !message.user.id) {
+                return next({error: 'user or id needs to be defined'})
+            }
+
             this.db.addDefaultLocationToUser(message.user.id)
-                .then(value => console.log('default location added', value))
-                .catch(err => console.log('error adding default location', err));
-            return next(null, {ok: true});
+                .then(next)
+                .catch(next);
         });
 
 
