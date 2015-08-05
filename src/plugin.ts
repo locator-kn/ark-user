@@ -59,6 +59,7 @@ class User {
         });
 
         this._register(server, options);
+        this._registerSeneca(server, options);
         initLogging(server);
         next();
     };
@@ -475,7 +476,7 @@ class User {
                 // send slack notif
                 this.sendSlackNotification({
                     name: user.name,
-                    mail: lowerCaseMail,
+                    mail: lowerCaseMail
                 });
 
                 // send chat message
@@ -530,35 +531,24 @@ class User {
                     name: request.payload.name
                 };
 
-                // create the actual user
-                return this.db.createUser(newUser)
-            }).then(data => {
 
-                var userSessionData = {
-                    mail: lowerCaseMail,
-                    _id: data.id,
-                    strategy: 'default'
-                };
-                request.auth.session.set(userSessionData);
-                reply(data);
+                request.seneca.act({create: 'user', strategy: 'default', user: newUser}, (err, res) => {
 
+                    if (err) {
+                        return reply(err)
+                    }
 
-                this.mailer.sendRegistrationMail({
-                    name: newUser.name,
-                    mail: newUser.mail,
-                    uuid: newUser.uuid
+                    var userSessionData = {
+                        mail: newUser.mail,
+                        _id: res.id,
+                        strategy: 'default'
+                    };
+
+                    request.auth.session.set(userSessionData);
+                    return reply(res);
+
                 });
 
-                // create a default location
-                this.db.addDefaultLocationToUser(data.id)
-                    .then(value => console.log('default location added', value))
-                    .catch(err => console.log('error adding default location', err));
-
-                // send slack notif
-                this.sendSlackNotification(newUser);
-
-                // send chat message
-                this.sendChatWelcomeMessage(data)
             }).catch(reply);
     };
 
