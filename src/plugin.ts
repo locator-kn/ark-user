@@ -326,7 +326,13 @@ class User {
                     newUser.id = data.id;
 
                     server.seneca.act({send: 'slackNofification', user: newUser});
-                    server.seneca.act({add: 'defaultLocation', user: newUser});
+                    server.seneca.act({add: 'defaultLocation', user: newUser}, (err, res) => {
+
+                        // not implementet yet
+                        /*  if (err) {
+                         server.seneca.act({log: 'error', error: err})
+                         }*/
+                    });
                     server.seneca.act({send: 'chatWelcomeMessage', user: newUser});
 
 
@@ -437,8 +443,6 @@ class User {
                 .then(next)
                 .catch(next);
         });
-
-
     };
 
     /**
