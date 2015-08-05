@@ -302,6 +302,10 @@ class User {
 
     _registerSeneca = (server, options) => {
 
+        if (!server.seneca) {
+            throw new Error('Server is missing Chairo Plugin');
+        }
+
         // Add a Seneca action
 
         server.seneca.add({create: 'user'}, function (message, next) {
