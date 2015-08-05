@@ -298,6 +298,97 @@ class User {
         return 'register';
     }
 
+
+    _registerSeneca = (server, options) => {
+        var id = 0;
+
+        // Add a Seneca action
+
+        var id = 0;
+        server.seneca.add({create: 'user'}, function (message, next) {
+
+
+            return next(null, {id: ++id});
+        });
+
+
+        server.seneca.add({create: 'user', strategy: 'default'}, (message, next) => {
+
+            var newUser = message.user;
+
+            // create the actual user
+            this.db.createUser(newUser)
+                .then(data => {
+
+                    // strange error: res === data, but data produces an error
+                    var res = {
+                        ok: true,
+                        id: data.id,
+                        rev: data.rev
+                    };
+                    next(null, res);
+
+
+                    server.seneca.act({send: 'registrationMail', user: newUser});
+                    server.seneca.act({send: 'slackNofification', user: newUser});
+                    server.seneca.act({send: 'chatWelcomeMessage', user: newUser});
+
+
+                    // create a default location
+                    this.db.addDefaultLocationToUser(data.id)
+                        .then(value => console.log('default location added', value))
+                        .catch(err => console.log('error adding default location', err));
+
+
+                }).catch(err => next(null, err));
+
+        });
+
+        server.seneca.add({create: 'user', strategy: 'facebook'}, (message, next) => {
+
+
+            return next(null, {res: message.strategy});
+        });
+
+        server.seneca.add({create: 'user', strategy: 'google'}, (message, next)=> {
+
+
+            return next(null, {res: message.strategy});
+        });
+
+        server.seneca.add({send: 'slackNofification'}, (message, next)=> {
+
+            // send slack notif
+            this.sendSlackNotification(message.user);
+
+            return next(null, {ok: true});
+        });
+
+        server.seneca.add({send: 'registrationMail'}, (message, next)=> {
+
+            var newUser = message.user;
+
+            this.mailer.sendRegistrationMail({
+                name: newUser.name,
+                mail: newUser.mail,
+                uuid: newUser.uuid
+            });
+
+
+            return next(null, {ok: true});
+        });
+
+        server.seneca.add({send: 'chatWelcomeMessage'}, (message, next)=> {
+
+            // send chat message
+            this.sendChatWelcomeMessage(message.user);
+
+            return next(null, {ok: true});
+        });
+
+
+    };
+
     /**
      * Handler function to get all user.
      *
