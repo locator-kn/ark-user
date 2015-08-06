@@ -401,27 +401,6 @@ class User {
             return next(null, {ok: true});
         });
 
-        server.seneca.add({send: 'registrationMail'}, (message, next)=> {
-
-            var newUser = message.user;
-            this.mailer.sendRegistrationMail({
-                name: newUser.name,
-                mail: newUser.mail,
-                uuid: newUser.uuid
-            });
-            return next(null, {ok: true});
-        });
-
-        server.seneca.add({send: 'sendRegistrationMailWithoutUuid'}, (message, next)=> {
-
-            var newUser = message.user;
-            this.mailer.sendRegistrationMailWithoutUuid({
-                name: newUser.name,
-                mail: newUser.mail,
-            });
-            return next(null, {ok: true});
-        });
-
         server.seneca.add({send: 'chatWelcomeMessage'}, (message, next)=> {
 
             if (!message.user || !message.user.id) {
