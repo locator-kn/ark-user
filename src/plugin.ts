@@ -18,7 +18,6 @@ class User {
     userSchemaPUT:any;
     boom:any;
     bcrypt:any;
-    mailer:any;
     uuid:any;
     imageUtil:any;
     generatePassword:any;
@@ -47,10 +46,6 @@ class User {
             next();
         });
 
-        server.dependency('ark-mailer', (server, next) => {
-            this.mailer = server.plugins['ark-mailer'];
-            next();
-        });
 
         // set dependency to the database plugin
         server.dependency('ark-staticdata', (server, next) => {
