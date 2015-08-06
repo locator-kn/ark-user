@@ -453,69 +453,49 @@ class User {
                 return;
             }
             i = i - 1;
+            var user = users[i];
+            var newPassword;
+            var newUser;
 
             // capitalize first character of name
-            var name = users[i].name;
-            users[i].name = name.charAt(0).toUpperCase() + name.slice(1);
-
+            var name = user.name;
+            user.name = name.charAt(0).toUpperCase() + name.slice(1);
+            var lowerCaseMail = user.mail.toLowerCase();
             // create the user
-            this.bulkcreateSingleUser(users[i]);
+            // check first if mail is already taken
+            this.db.isMailAvailable(lowerCaseMail)
+                .then(() => {
+                    // generate password and hash
+                    newPassword = this.generatePassword(12, false);
+                    return this._getPasswordHash(newPassword)
+                }).then(hash => {
+                    newUser = {
+                        password: hash,
+                        strategy: 'default',
+                        uuid: this.uuid.v4(),
+                        verified: false,
+                        type: 'user',
+                        birthdate: '',
+                        residence: '',
+                        description: '',
+                        mail: lowerCaseMail,
+                        surname: '',
+                        name: user.name
+                    };
+                    request.seneca.act({create: 'user', user: newUser}, (err, res) => {
 
+                        if (err) {
+                            return;
+                        }
+                        newUser.newPassword = newPassword;
+                        request.seneca.act({send: 'sendRegistrationMailWithPassword', user: newUser})
+                    })
+                });
         }, 2000);
 
 
         return reply('ok');
 
-    };
-
-    private bulkcreateSingleUser = (user) => {
-        var lowerCaseMail = user.mail.toLowerCase();
-        var newPassword;
-
-        // check first if mail is already taken
-        this.db.isMailAvailable(lowerCaseMail)
-            .then(() => {
-                // generate password and hash
-                newPassword = this.generatePassword(12, false);
-                return this._getPasswordHash(newPassword)
-            }).then(hash => {
-                // create the actual user
-                return this.db.createUser({
-                    password: hash,
-                    strategy: 'default',
-                    uuid: this.uuid.v4(),
-                    verified: false,
-                    type: 'user',
-                    birthdate: '',
-                    residence: '',
-                    description: '',
-                    mail: lowerCaseMail,
-                    surname: '',
-                    name: user.name
-                })
-            }).then(data => {
-
-                // send welcome mail
-                this.mailer.sendRegistrationMailWithPassword({
-                    name: user.name,
-                    mail: lowerCaseMail,
-                    password: newPassword
-                });
-
-                // add default location
-                this.db.addDefaultLocationToUser(data.id)
-                    .then(value => console.log('default location added', value))
-                    .catch(err => console.log('error adding default location', err));
-
-                // send slack notif
-                this.sendSlackNotification({
-                    name: user.name,
-                    mail: lowerCaseMail
-                });
-
-                // send chat message
-                this.sendChatWelcomeMessage(data)
-            }).catch(err => logError('error' + err));
     };
 
     /**
