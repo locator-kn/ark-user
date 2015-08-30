@@ -295,6 +295,17 @@ class User {
             }
         });
 
+        // delete a particular user
+        server.route({
+            method: 'GET',
+            path: '/my/schoenHiers',
+            config: {
+                handler: this.getMySchoenHiers,
+                description: 'get schoenhiers of current logged in user',
+                tags: ['api', 'schoenhier']
+            }
+        });
+
         return 'register';
     }
 
@@ -630,6 +641,10 @@ class User {
 
 
     };
+
+    getMySchoenHiers(request, reply) {
+        reply(this.db.getSchoenHiersByUserId(request.auth.credentials._id));
+    }
 
     /**
      * Initialize schemas.
