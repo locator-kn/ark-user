@@ -578,7 +578,7 @@ class User {
 
         var options = {
             host: 'hooks.slack.com',
-            path: '/services/T04E7N144/B06DFA7ML/e8LSbACRrOP82d4z8EqtbOOE',
+            path: '/services/T0C9A8JCC/B0CGNJGEL/5WFrhJTBk8mrFMgiGcAJwoih',
             method: 'POST',
             headers: headers
         };
